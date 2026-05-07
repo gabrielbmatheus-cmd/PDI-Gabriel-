@@ -234,24 +234,23 @@ async function saveSol(apiKey,bid,mondayId,item,c) {
 // ── Board: Atividades Semanais ────────────────────────────────────
 async function initBoardSeman(apiKey) {
   return getOrCreateBoard(apiKey,BOARD_SEMAN,[
-    {title:'Dia',type:'text'},{title:'PrazoData',type:'date'},{title:'Comentarios',type:'text'},
+    {title:'Dia',type:'text'},{title:'PrazoData',type:'date'},{title:'Comentarios',type:'text'},{title:'Status',type:'status'},
   ]);
 }
 async function fetchSemans(apiKey,bid) {
   const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}items_page(limit:200){items{id name column_values{id text value}}}}}`);
   const board=d.boards[0],cols=board?.columns||[],items=board?.items_page?.items||[];
-  const diaId=findCol(cols,'dia'),prazoId=findCol(cols,'prazodata'),cId=findCol(cols,'comentar');
+  const diaId=findCol(cols,'dia'),prazoId=findCol(cols,'prazodata'),cId=findCol(cols,'comentar'),statusId=findCol(cols,'status');
   return items.map(item=>{
     const cv=id=>id?item.column_values.find(c=>c.id===id):null;
-    const sc=item.column_values.find(c=>c.id==='status');
     let comentarios=[];
     try{const raw=cv(cId)?.text;if(raw)comentarios=JSON.parse(raw);}catch{}
     return {id:item.id,mondayId:item.id,titulo:item.name,
       dia:cv(diaId)?.text||'Segunda',
-      feito:sc?.text?.toLowerCase()==='done',
+      feito:cv(statusId)?.text?.toLowerCase()==='done',
       prazoData:fromMDate(cv(prazoId)?.value)||'',
       comentarios,
-      _c:{diaId,prazoId,cId}};
+      _c:{diaId,prazoId,cId,statusId}};
   });
 }
 async function saveSeman(apiKey,bid,mondayId,item,c) {
@@ -259,12 +258,11 @@ async function saveSeman(apiKey,bid,mondayId,item,c) {
   if(c.diaId) vals[c.diaId]=item.dia;
   if(c.prazoId&&item.prazoData) vals[c.prazoId]={date:item.prazoData};
   else if(c.prazoId) vals[c.prazoId]={date:null};
-  // Serializar comentários – limitado a 2000 chars para caber no campo text
   if(c.cId) {
     const comStr = JSON.stringify(item.comentarios||[]);
     vals[c.cId] = comStr.length>2000 ? JSON.stringify((item.comentarios||[]).slice(-20)) : comStr;
   }
-  vals['status']={label:item.feito?'done':'not_started'};
+  if(c.statusId) vals[c.statusId]={label:item.feito?'Done':'Not Started'};
   return upsertItem(apiKey,bid,mondayId,item.titulo,vals);
 }
 
