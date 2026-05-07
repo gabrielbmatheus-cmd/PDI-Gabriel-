@@ -8,1139 +8,1657 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #F6F5F2;
-    --surface: #FFFFFF;
-    --surface2: #F0EEE9;
-    --border: #E4E1D8;
-    --border2: #D4D0C4;
-    --text: #1A1916;
-    --text2: #5C5A54;
-    --text3: #9B9890;
-    --accent: #1C3A5E;
-    --accent2: #2A5298;
-    --accent-light: #EBF0F8;
-    --red: #C0392B;
-    --red-light: #FDECEA;
-    --amber: #B7630A;
-    --amber-light: #FEF4E6;
-    --green: #1A6B3C;
-    --green-light: #E8F5EE;
-    --blue: #1A4A8A;
-    --blue-light: #E8EFF8;
-    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-
-  body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; }
-  select, input, textarea, button { font-family: inherit; }
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes slideDown { from { opacity:0; transform:translateY(-8px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
-  .card-enter { animation: fadeIn .22s ease both; }
-  .modal-enter { animation: slideDown .2s ease both; }
-
-  .btn { border:none; border-radius:var(--radius-sm); cursor:pointer; font-size:13px; font-weight:600; padding:9px 18px; transition:opacity .15s, transform .1s; }
-  .btn:hover { opacity:.88; }
-  .btn:active { transform:scale(.97); }
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-ghost { background:var(--surface2); color:var(--text2); }
-  .btn-danger { background:var(--red-light); color:var(--red); }
-
-  .inp { width:100%; padding:9px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); font-size:13.5px; outline:none; background:var(--surface); color:var(--text); transition:border-color .15s, box-shadow .15s; }
-  .inp:focus { border-color:var(--accent2); box-shadow:0 0 0 3px rgba(42,82,152,.10); }
-
-  .badge { display:inline-flex; align-items:center; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; font-family:'DM Mono',monospace; letter-spacing:.02em; }
-
-  .tab-btn { padding:9px 18px; border:none; background:none; cursor:pointer; font-size:13px; font-weight:500; color:var(--text3); border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s, border-color .15s; white-space:nowrap; }
-  .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:700; }
-  .tab-btn:hover:not(.active) { color:var(--text2); }
-
-  .sol-card { background:var(--surface); border-radius:var(--radius); padding:16px 20px; border:1.5px solid var(--border); transition:border-color .15s, box-shadow .15s; }
-  .sol-card:hover { box-shadow:var(--shadow); }
-  .sol-card.critico { border-color:#F9CACA; background:#FFFAFA; }
-  .sol-card.concluido { opacity:.55; }
-
-  .seman-card { background:var(--surface); border-radius:var(--radius-sm); padding:12px 16px; border:1.5px solid var(--border); display:flex; align-items:center; gap:12px; transition:border-color .15s; cursor:pointer; }
-  .seman-card:hover { border-color:var(--border2); box-shadow:var(--shadow); }
-  .seman-card.vencida { border-color:#F9CACA; background:#FFFAFA; }
-
-  .checkbox { width:20px; height:20px; border-radius:6px; border:2px solid var(--border2); background:transparent; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; transition:background .15s, border-color .15s; }
-  .checkbox.checked { background:var(--green); border-color:var(--green); }
-
-  .stat-card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius); padding:16px 20px; flex:1 1 140px; }
-
-  .overlay { position:fixed; inset:0; background:rgba(20,18,14,.45); z-index:100; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px); }
-  .modal { background:var(--surface); border-radius:16px; width:100%; max-width:520px; padding:28px; box-shadow:var(--shadow-lg); max-height:90vh; overflow-y:auto; }
-  .modal-wide { max-width:640px; }
-
-  .field { margin-bottom:14px; }
-  .field label { display:block; font-size:11.5px; font-weight:600; color:var(--text2); margin-bottom:4px; text-transform:uppercase; letter-spacing:.05em; }
-
-  .prazo-tag { display:flex; flex-direction:column; align-items:center; gap:2px; }
-  .prazo-tag .label { font-size:10px; color:var(--text3); font-weight:500; text-transform:uppercase; letter-spacing:.06em; }
-  .prazo-tag .value { font-size:12px; font-weight:700; padding:4px 12px; border-radius:8px; font-family:'DM Mono',monospace; }
-  .prazo-tag .date { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; }
-
-  .status-select { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; border:none; cursor:pointer; outline:none; font-family:'DM Mono',monospace; }
-
-  .dia-header { font-size:10.5px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
-
-  .alerta { border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:16px; font-size:12.5px; display:flex; align-items:center; gap:8px; }
-  .alerta-critico { background:#FFF5F5; border:1.5px solid #F9CACA; color:var(--red); }
-
-  .empty-state { text-align:center; color:var(--text3); padding:72px 0; font-size:14px; }
-  .empty-state .icon { font-size:36px; margin-bottom:12px; opacity:.5; }
-
-  .login-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg); padding:24px; }
-  .login-box { background:var(--surface); border-radius:16px; padding:36px; max-width:440px; width:100%; box-shadow:var(--shadow-lg); border:1.5px solid var(--border); }
-
-  .comentario-item { background:var(--surface2); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:8px; }
-  .comentario-item .meta { font-size:11px; color:var(--text3); margin-bottom:4px; font-family:'DM Mono',monospace; }
-  .comentario-item .texto { font-size:13.5px; color:var(--text); line-height:1.5; }
-
-  .cat-tag { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px; margin:3px; }
-  .cat-remove { background:none; border:none; cursor:pointer; font-size:13px; line-height:1; padding:0; opacity:.6; }
-  .cat-remove:hover { opacity:1; }
-
-  .seman-dia-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:12px; background:var(--surface2); color:var(--text2); font-family:'DM Mono',monospace; }
-  .seman-vencida-badge { background:var(--red-light); color:var(--red); }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F6F5F2;--surface:#FFF;--surface2:#F0EEE9;--border:#E4E1D8;--border2:#D4D0C4;
+  --text:#1A1916;--text2:#5C5A54;--text3:#9B9890;
+  --accent:#1C3A5E;--accent2:#2A5298;--accent-light:#EBF0F8;
+  --red:#C0392B;--red-light:#FDECEA;
+  --amber:#B7630A;--amber-light:#FEF4E6;
+  --green:#1A6B3C;--green-light:#E8F5EE;
+  --blue:#1A4A8A;--blue-light:#E8EFF8;
+  --purple:#5B21B6;--purple-light:#EDE9FE;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);
+  --radius:12px;--radius-sm:8px;
+}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh}
+select,input,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.card-enter{animation:fadeIn .22s ease both}.modal-enter{animation:slideDown .2s ease both}
+.btn{border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;padding:9px 18px;transition:opacity .15s,transform .1s}
+.btn:hover{opacity:.88}.btn:active{transform:scale(.97)}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--accent);color:#fff}.btn-ghost{background:var(--surface2);color:var(--text2)}.btn-danger{background:var(--red-light);color:var(--red)}
+.inp{width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:13.5px;outline:none;background:var(--surface);color:var(--text);transition:border-color .15s,box-shadow .15s}
+.inp:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(42,82,152,.10)}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;font-family:'DM Mono',monospace}
+.tab-btn{padding:9px 18px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;white-space:nowrap}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.tab-btn:hover:not(.active){color:var(--text2)}
+.sol-card{background:var(--surface);border-radius:var(--radius);padding:16px 20px;border:1.5px solid var(--border);transition:border-color .15s,box-shadow .15s}
+.sol-card:hover{box-shadow:var(--shadow)}.sol-card.critico{border-color:#F9CACA;background:#FFFAFA}.sol-card.concluido{opacity:.55}
+.seman-card{background:var(--surface);border-radius:var(--radius-sm);padding:12px 16px;border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;transition:border-color .15s;cursor:pointer}
+.seman-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}.seman-card.vencida{border-color:#F9CACA;background:#FFFAFA}
+.checkbox{width:20px;height:20px;border-radius:6px;border:2px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:background .15s,border-color .15s}
+.checkbox.checked{background:var(--green);border-color:var(--green)}
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 20px;flex:1 1 140px}
+.overlay{position:fixed;inset:0;background:rgba(20,18,14,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:520px;padding:28px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto}
+.modal-wide{max-width:680px}.modal-xl{max-width:860px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.prazo-tag{display:flex;flex-direction:column;align-items:center;gap:2px}
+.prazo-tag .plabel{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.prazo-tag .pvalue{font-size:12px;font-weight:700;padding:4px 12px;border-radius:8px;font-family:'DM Mono',monospace}
+.prazo-tag .pdate{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace}
+.status-sel{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;outline:none;font-family:'DM Mono',monospace}
+.dia-header{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.alerta{border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:12.5px;display:flex;align-items:center;gap:8px}
+.alerta-critico{background:#FFF5F5;border:1.5px solid #F9CACA;color:var(--red)}
+.empty-state{text-align:center;color:var(--text3);padding:72px 0;font-size:14px}
+.empty-state .icon{font-size:36px;margin-bottom:12px;opacity:.5}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);padding:24px}
+.login-box{background:var(--surface);border-radius:16px;padding:36px;max-width:440px;width:100%;box-shadow:var(--shadow-lg);border:1.5px solid var(--border)}
+.coment-item{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px}
+.coment-item .meta{font-size:11px;color:var(--text3);margin-bottom:4px;font-family:'DM Mono',monospace}
+.coment-item .texto{font-size:13.5px;color:var(--text);line-height:1.5}
+.cat-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;margin:3px}
+.inadim-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 1fr 80px;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.inadim-row:hover{background:var(--surface2)}
+.inadim-header{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.acordo-row{display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr 80px;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.acordo-row:hover{background:var(--surface2)}
+.pdi-card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);overflow:hidden;margin-bottom:16px}
+.pdi-card-header{padding:16px 20px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+.pdi-card-header:hover{background:var(--surface2)}
+.pdi-card-body{padding:0 20px 20px}
+.progress-bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.chart-bar{display:flex;align-items:flex-end;gap:8px;height:180px}
+.chart-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.chart-bar-inner{width:100%;border-radius:6px 6px 0 0;transition:height .4s ease;min-height:4px}
+.chart-label{font-size:10px;color:var(--text3);text-align:center;font-weight:500}
+.chart-value{font-size:11px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace}
+.import-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.import-zone:hover{border-color:var(--accent2);background:var(--accent-light)}
+.import-zone.drag{border-color:var(--accent2);background:var(--accent-light)}
+.table-scroll{overflow-x:auto}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+const {useState,useEffect,useRef,useCallback} = React;
 
-// ── Constantes ────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────
 const today = new Date(); today.setHours(0,0,0,0);
-const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString("pt-BR") : "–";
-const fmtDT = (iso) => iso ? new Date(iso).toLocaleString("pt-BR", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "";
-const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-const DIAS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
-const STATUS_SOL = ["Em andamento","Aguardando revisão","Concluído"];
-const CATS_DEFAULT = ["Contratos","Cobranças","Distratos","Documentos","Notificações","Outro"];
+const fmt = d => d ? new Date(d+'T12:00:00').toLocaleDateString('pt-BR') : '–';
+const fmtDT = iso => iso ? new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+const fmtBRL = v => { const n=parseFloat(String(v).replace(/[^0-9.,]/g,'').replace(',','.')); return isNaN(n)?'–':'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2}); };
+const genId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const DIAS = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const STATUS_SOL = ['Em andamento','Aguardando revisão','Concluído'];
+const CATS_DEFAULT = ['Contratos','Cobranças','Distratos','Documentos','Notificações','Outro'];
+const BOARD_SOL   = 'Solicitações Jurídicas – Pessoal';
+const BOARD_SEMAN = 'Atividades Semanais – Pessoal';
+const BOARD_META  = 'Config – Painel Gabriel';
+const BOARD_INADIM = 'Projeto Inadimplentes – Casos';
+const BOARD_ACORDOS = 'Projeto Inadimplentes – Acordos';
 
-// Boards Monday
-const BOARD_SOL   = "Solicitações Jurídicas – Pessoal";
-const BOARD_SEMAN = "Atividades Semanais – Pessoal";
-const BOARD_META  = "Config – Painel Gabriel";
-
-const catColorPalette = [
-  { bg:"#EDE9FE", color:"#5B21B6" },
-  { bg:"#FEE2E2", color:"#B91C1C" },
-  { bg:"#FFEDD5", color:"#C2410C" },
-  { bg:"#F1F5F9", color:"#475569" },
-  { bg:"#DBEAFE", color:"#1D4ED8" },
-  { bg:"#F0FDF4", color:"#166534" },
-  { bg:"#FEF9C3", color:"#854D0E" },
-  { bg:"#FCE7F3", color:"#9D174D" },
+const CAT_PALETTE = [
+  {bg:'#EDE9FE',color:'#5B21B6'},{bg:'#FEE2E2',color:'#B91C1C'},{bg:'#FFEDD5',color:'#C2410C'},
+  {bg:'#F1F5F9',color:'#475569'},{bg:'#DBEAFE',color:'#1D4ED8'},{bg:'#F0FDF4',color:'#166534'},
+  {bg:'#FEF9C3',color:'#854D0E'},{bg:'#FCE7F3',color:'#9D174D'},
 ];
-function catColor(cats, cat) {
-  const idx = cats.indexOf(cat);
-  return catColorPalette[idx % catColorPalette.length] || { bg:"#F1F5F9", color:"#64748B" };
-}
-
-const statusColor = {
-  "Em andamento":      { bg:"#DBEAFE", color:"#1D4ED8" },
-  "Aguardando revisão":{ bg:"#FEF3C7", color:"#B45309" },
-  "Concluído":         { bg:"#D1FAE5", color:"#065F46" },
+const catColor = (cats,cat) => { const i=cats.indexOf(cat); return CAT_PALETTE[i%CAT_PALETTE.length]||{bg:'#F1F5F9',color:'#64748B'}; };
+const STATUS_COLOR = {
+  'Em andamento':{bg:'#DBEAFE',color:'#1D4ED8'},
+  'Aguardando revisão':{bg:'#FEF3C7',color:'#B45309'},
+  'Concluído':{bg:'#D1FAE5',color:'#065F46'},
 };
-const mondayStatusReverse = {
-  "working_on_it":"Em andamento",
-  "stuck":"Aguardando revisão",
-  "done":"Concluído",
-};
+const MONDAY_STATUS_MAP = {'working_on_it':'Em andamento','stuck':'Aguardando revisão','done':'Concluído'};
 
-function prazoStatus(dateStr) {
-  if (!dateStr) return { label:"–", color:"#9B9890", bg:"#F1F0EC" };
-  const d = new Date(dateStr + 'T12:00:00');
-  const diff = Math.ceil((d - today) / (1000*60*60*24));
-  if (diff < 0)   return { label:"Vencido",  color:"#C0392B", bg:"#FDECEA" };
-  if (diff === 0) return { label:"Hoje",     color:"#C0392B", bg:"#FDECEA" };
-  if (diff === 1) return { label:"Amanhã",   color:"#B7630A", bg:"#FEF4E6" };
-  if (diff <= 3)  return { label:`${diff}d`, color:"#B7630A", bg:"#FEF4E6" };
-  if (diff <= 7)  return { label:`${diff}d`, color:"#1A4A8A", bg:"#E8EFF8" };
-  return { label:`${diff}d`, color:"#5C5A54", bg:"#F0EEE9" };
+function prazoStatus(ds) {
+  if(!ds) return {label:'–',color:'#9B9890',bg:'#F1F0EC'};
+  const d=new Date(ds+'T12:00:00'), diff=Math.ceil((d-today)/(864e5));
+  if(diff<0)  return {label:'Vencido',color:'#C0392B',bg:'#FDECEA'};
+  if(diff===0)return {label:'Hoje',   color:'#C0392B',bg:'#FDECEA'};
+  if(diff===1)return {label:'Amanhã', color:'#B7630A',bg:'#FEF4E6'};
+  if(diff<=3) return {label:`${diff}d`,color:'#B7630A',bg:'#FEF4E6'};
+  if(diff<=7) return {label:`${diff}d`,color:'#1A4A8A',bg:'#E8EFF8'};
+  return {label:`${diff}d`,color:'#5C5A54',bg:'#F0EEE9'};
 }
-function isCritico(s) {
-  if (s.status === "Concluído" || !s.prazoInterno) return false;
-  const d = new Date(s.prazoInterno + 'T12:00:00');
-  return Math.ceil((d - today) / (1000*60*60*24)) <= 1;
-}
-
-// Vencida = dia da semana já passou nesta semana e não foi feita
+function isHoje(ds) { if(!ds) return false; const d=new Date(ds+'T12:00:00'); return Math.ceil((d-today)/864e5)===0; }
+function isCritico(s) { return s.status!=='Concluído' && isHoje(s.prazoInterno); }
 function isVencida(t) {
-  if (t.feito) return false;
-  // Se tem prazoData explícito, usa ele
-  if (t.prazoData) {
-    const d = new Date(t.prazoData + 'T12:00:00');
-    return d < today;
-  }
-  // Caso contrário, compara dia da semana
-  const diaIdx = DIAS.indexOf(t.dia);
-  const todayIdx = today.getDay() === 0 ? 6 : today.getDay() - 1; // 0=Seg
-  return diaIdx < todayIdx;
+  if(t.feito) return false;
+  if(t.prazoData) return new Date(t.prazoData+'T12:00:00')<today;
+  const di=DIAS.indexOf(t.dia), ti=today.getDay()===0?6:today.getDay()-1;
+  return di<ti;
+}
+const fromMDate = v => { if(!v) return ''; try{const d=JSON.parse(v);return d.date||'';}catch{return v||'';} };
+
+// ── localStorage ──────────────────────────────────────────────────
+const loadLS = (k,fb) => { try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;} };
+const saveLS = (k,v) => { try{localStorage.setItem(k,JSON.stringify(v));}catch{} };
+
+// ── Monday API ────────────────────────────────────────────────────
+async function mq(apiKey,query,variables={}) {
+  const r = await fetch('/api/monday',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,variables,apiKey})});
+  const d = await r.json();
+  if(d.errors) throw new Error(d.errors[0].message);
+  return d.data;
 }
 
-// ── API Monday ────────────────────────────────────────────────────
-async function mondayQuery(apiKey, query, variables = {}) {
-  const res = await fetch("/api/monday", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ query, variables, apiKey }),
-  });
-  const data = await res.json();
-  if (data.errors) throw new Error(data.errors[0].message);
-  return data.data;
+async function getOrCreateBoard(apiKey,name,cols) {
+  const d = await mq(apiKey,`{boards(limit:100){id name}}`);
+  const ex = d.boards.find(b=>b.name===name);
+  if(ex) return ex.id;
+  const cr = await mq(apiKey,`mutation{create_board(board_name:"${name}",board_kind:private){id}}`);
+  const bid = cr.create_board.id;
+  for(const c of cols) await mq(apiKey,`mutation{create_column(board_id:${bid},title:"${c.title}",column_type:${c.type}){id}}`);
+  return bid;
 }
 
-async function getOrCreateBoardByName(apiKey, name, cols, isPrivate = true) {
-  const data = await mondayQuery(apiKey, `{ boards(limit:100) { id name } }`);
-  const existing = data.boards.find(b => b.name === name);
-  if (existing) return existing.id;
-  const kind = isPrivate ? "private" : "public";
-  const created = await mondayQuery(apiKey,
-    `mutation { create_board(board_name: "${name}", board_kind: ${kind}) { id } }`
-  );
-  const boardId = created.create_board.id;
-  for (const col of cols) {
-    await mondayQuery(apiKey,
-      `mutation { create_column(board_id: ${boardId}, title: "${col.title}", column_type: ${col.type}) { id } }`
-    );
-  }
-  return boardId;
+async function getBoardCols(apiKey,bid) {
+  const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}}}`);
+  return d.boards[0]?.columns||[];
+}
+const findCol = (cols,kw) => cols.find(c=>c.title.toLowerCase().includes(kw.toLowerCase()))?.id;
+
+// Rename item – API v2024 usa change_item_value para nome
+async function renameItem(apiKey,bid,itemId,newName) {
+  await mq(apiKey,`mutation($id:ID!,$name:String!,$bid:ID!){change_item_value(item_id:$id,board_id:$bid,column_id:"name",value:$name){id}}`,
+    {id:itemId,name:JSON.stringify(newName),bid:String(bid)});
 }
 
-async function getBoardCols(apiKey, boardId) {
-  const data = await mondayQuery(apiKey, `query { boards(ids:[${boardId}]) { columns { id title } } }`);
-  return data.boards[0]?.columns || [];
-}
-
-function findCol(cols, kw) {
-  return cols.find(c => c.title.toLowerCase().includes(kw.toLowerCase()))?.id;
-}
-
-function fromMondayDate(val) {
-  if (!val) return "";
-  try { const d = JSON.parse(val); return d.date || ""; } catch { return val || ""; }
-}
-
-// ── Board Solicitações ────────────────────────────────────────────
-async function initBoardSol(apiKey) {
-  return getOrCreateBoardByName(apiKey, BOARD_SOL, [
-    {title:"Categoria",     type:"text"},
-    {title:"Prazo Interno", type:"date"},
-    {title:"Prazo Externo", type:"date"},
-    {title:"Observações",   type:"text"},
-  ]);
-}
-
-async function fetchSolicitacoes(apiKey, boardId) {
-  const data = await mondayQuery(apiKey, `
-    query {
-      boards(ids:[${boardId}]) {
-        columns { id title }
-        items_page(limit:200) {
-          items { id name column_values { id text value } }
-        }
-      }
-    }
-  `);
-  const board = data.boards[0];
-  const cols  = board?.columns || [];
-  const items = board?.items_page?.items || [];
-  const piId  = findCol(cols,"prazo interno");
-  const peId  = findCol(cols,"prazo externo");
-  const catId = findCol(cols,"categoria");
-  const obsId = findCol(cols,"observa");
-  return items.map(item => {
-    const cv = (id) => id ? item.column_values.find(c => c.id === id) : null;
-    const statusCol = item.column_values.find(c => c.id === "status");
-    return {
-      id: item.id, mondayId: item.id, titulo: item.name,
-      categoria:    cv(catId)?.text || "Outro",
-      status:       mondayStatusReverse[statusCol?.text?.toLowerCase()?.replace(/ /g,"_")] || "Em andamento",
-      prazoInterno: fromMondayDate(cv(piId)?.value) || "",
-      prazoExterno: fromMondayDate(cv(peId)?.value) || "",
-      obs:          cv(obsId)?.text || "",
-      _colIds:      { piId, peId, catId, obsId },
-    };
-  });
-}
-
-async function createSol(apiKey, boardId, item, colIds) {
-  const vals = {};
-  if (colIds.catId) vals[colIds.catId] = item.categoria;
-  if (colIds.piId && item.prazoInterno) vals[colIds.piId] = { date: item.prazoInterno };
-  if (colIds.peId && item.prazoExterno) vals[colIds.peId] = { date: item.prazoExterno };
-  if (colIds.obsId) vals[colIds.obsId] = item.obs || "";
-  vals["status"] = { label: item.status };
-  const r = await mondayQuery(apiKey,
-    `mutation($name:String!,$vals:JSON!){ create_item(board_id:${boardId},item_name:$name,column_values:$vals){id} }`,
-    { name: item.titulo, vals: JSON.stringify(vals) }
-  );
-  return r.create_item.id;
-}
-
-async function updateSol(apiKey, boardId, mondayId, item, colIds) {
-  const vals = {};
-  if (colIds.catId) vals[colIds.catId] = item.categoria;
-  if (colIds.piId && item.prazoInterno) vals[colIds.piId] = { date: item.prazoInterno };
-  if (colIds.peId && item.prazoExterno) vals[colIds.peId] = { date: item.prazoExterno };
-  if (colIds.obsId) vals[colIds.obsId] = item.obs || "";
-  vals["status"] = { label: item.status };
-  await mondayQuery(apiKey,
-    `mutation($id:ID!,$name:String!,$vals:JSON!){
-      change_multiple_column_values(item_id:$id,board_id:${boardId},column_values:$vals){id}
-      change_item_name(item_id:$id,board_id:${boardId},value:$name){id}
-    }`,
-    { id: mondayId, name: item.titulo, vals: JSON.stringify(vals) }
-  );
-}
-
-async function deleteMondayItem(apiKey, mondayId) {
-  await mondayQuery(apiKey, `mutation { delete_item(item_id: ${mondayId}) { id } }`);
-}
-
-// ── Board Atividades Semanais ─────────────────────────────────────
-// Estrutura: cada atividade = 1 item no Monday
-// Campos: Dia (text), Feito (status), PrazoData (date), Comentários (long_text)
-// Comentários são serializados como JSON no campo long_text
-
-async function initBoardSeman(apiKey) {
-  return getOrCreateBoardByName(apiKey, BOARD_SEMAN, [
-    {title:"Dia",        type:"text"},
-    {title:"PrazoData",  type:"date"},
-    {title:"Comentários",type:"long_text"},
-  ]);
-}
-
-async function fetchSemanais(apiKey, boardId) {
-  const data = await mondayQuery(apiKey, `
-    query {
-      boards(ids:[${boardId}]) {
-        columns { id title }
-        items_page(limit:200) {
-          items { id name column_values { id text value } }
-        }
-      }
-    }
-  `);
-  const board = data.boards[0];
-  const cols  = board?.columns || [];
-  const items = board?.items_page?.items || [];
-  const diaId    = findCol(cols,"dia");
-  const prazoId  = findCol(cols,"prazodata");
-  const comentId = findCol(cols,"coment");
-  return items.map(item => {
-    const cv = (id) => id ? item.column_values.find(c => c.id === id) : null;
-    const statusCol = item.column_values.find(c => c.id === "status");
-    let comentarios = [];
-    try { const raw = cv(comentId)?.text; if (raw) comentarios = JSON.parse(raw); } catch {}
-    return {
-      id:          item.id,
-      mondayId:    item.id,
-      titulo:      item.name,
-      dia:         cv(diaId)?.text || "Segunda",
-      feito:       statusCol?.text?.toLowerCase() === "done",
-      prazoData:   fromMondayDate(cv(prazoId)?.value) || "",
-      comentarios,
-      _colIds:     { diaId, prazoId, comentId },
-    };
-  });
-}
-
-async function createSeman(apiKey, boardId, item, colIds) {
-  const vals = {};
-  if (colIds.diaId)   vals[colIds.diaId]   = item.dia;
-  if (colIds.prazoId && item.prazoData) vals[colIds.prazoId] = { date: item.prazoData };
-  if (colIds.comentId) vals[colIds.comentId] = JSON.stringify(item.comentarios || []);
-  vals["status"] = { label: item.feito ? "done" : "not_started" };
-  const r = await mondayQuery(apiKey,
-    `mutation($name:String!,$vals:JSON!){ create_item(board_id:${boardId},item_name:$name,column_values:$vals){id} }`,
-    { name: item.titulo, vals: JSON.stringify(vals) }
-  );
-  return r.create_item.id;
-}
-
-async function updateSeman(apiKey, boardId, mondayId, item, colIds) {
-  const vals = {};
-  if (colIds.diaId)   vals[colIds.diaId]   = item.dia;
-  if (colIds.prazoId) vals[colIds.prazoId]  = item.prazoData ? { date: item.prazoData } : null;
-  if (colIds.comentId) vals[colIds.comentId] = JSON.stringify(item.comentarios || []);
-  vals["status"] = { label: item.feito ? "done" : "not_started" };
-  await mondayQuery(apiKey,
-    `mutation($id:ID!,$name:String!,$vals:JSON!){
-      change_multiple_column_values(item_id:$id,board_id:${boardId},column_values:$vals){id}
-      change_item_name(item_id:$id,board_id:${boardId},value:$name){id}
-    }`,
-    { id: mondayId, name: item.titulo, vals: JSON.stringify(vals) }
-  );
-}
-
-// ── Board Meta (categorias) ───────────────────────────────────────
-async function initBoardMeta(apiKey) {
-  return getOrCreateBoardByName(apiKey, BOARD_META, [
-    {title:"Valor", type:"text"},
-  ]);
-}
-
-async function fetchCats(apiKey, boardId) {
-  const data = await mondayQuery(apiKey, `
-    query {
-      boards(ids:[${boardId}]) {
-        columns { id title }
-        items_page(limit:10) {
-          items { id name column_values { id text } }
-        }
-      }
-    }
-  `);
-  const board = data.boards[0];
-  const items = board?.items_page?.items || [];
-  const cols  = board?.columns || [];
-  const valId = findCol(cols,"valor");
-  // Procura item "categorias"
-  const item = items.find(i => i.name.toLowerCase() === "categorias");
-  if (!item) return { id: null, cats: CATS_DEFAULT, valId };
-  const cv = item.column_values.find(c => c.id === valId);
-  let cats = CATS_DEFAULT;
-  try { if (cv?.text) cats = JSON.parse(cv.text); } catch {}
-  return { id: item.id, cats, valId };
-}
-
-async function saveCats(apiKey, boardId, cats, itemId, valId) {
-  const val = JSON.stringify(cats);
-  if (itemId) {
-    const vals = {}; vals[valId] = val;
-    await mondayQuery(apiKey,
-      `mutation($id:ID!,$vals:JSON!){ change_multiple_column_values(item_id:$id,board_id:${boardId},column_values:$vals){id} }`,
-      { id: itemId, vals: JSON.stringify(vals) }
-    );
-    return itemId;
+// Upsert item genérico
+async function upsertItem(apiKey,bid,mondayId,name,vals) {
+  const vs = JSON.stringify(vals);
+  if(mondayId) {
+    // Primeiro atualiza colunas
+    await mq(apiKey,`mutation($id:ID!,$bid:ID!,$vs:JSON!){change_multiple_column_values(item_id:$id,board_id:$bid,column_values:$vs){id}}`,
+      {id:mondayId,bid:String(bid),vs});
+    // Depois renomeia separadamente (sem change_item_name)
+    await mq(apiKey,`mutation($id:ID!,$bid:ID!,$v:String!){change_simple_column_value(item_id:$id,board_id:$bid,column_id:"name",value:$v){id}}`,
+      {id:mondayId,bid:String(bid),v:name});
+    return mondayId;
   } else {
-    const vals = {}; if (valId) vals[valId] = val;
-    const r = await mondayQuery(apiKey,
-      `mutation($name:String!,$vals:JSON!){ create_item(board_id:${boardId},item_name:$name,column_values:$vals){id} }`,
-      { name: "categorias", vals: JSON.stringify(vals) }
-    );
+    const r = await mq(apiKey,`mutation($name:String!,$bid:ID!,$vs:JSON!){create_item(board_id:$bid,item_name:$name,column_values:$vs){id}}`,
+      {name,bid:String(bid),vs});
     return r.create_item.id;
   }
 }
 
+async function deleteItem(apiKey,id) {
+  await mq(apiKey,`mutation{delete_item(item_id:${id}){id}}`);
+}
+
+// ── Board: Solicitações ───────────────────────────────────────────
+async function initBoardSol(apiKey) {
+  return getOrCreateBoard(apiKey,BOARD_SOL,[
+    {title:'Categoria',type:'text'},{title:'Prazo Interno',type:'date'},
+    {title:'Prazo Externo',type:'date'},{title:'Observações',type:'text'},
+  ]);
+}
+async function fetchSols(apiKey,bid) {
+  const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}items_page(limit:200){items{id name column_values{id text value}}}}}`);
+  const board=d.boards[0],cols=board?.columns||[],items=board?.items_page?.items||[];
+  const piId=findCol(cols,'prazo interno'),peId=findCol(cols,'prazo externo'),catId=findCol(cols,'categoria'),obsId=findCol(cols,'observa');
+  return items.map(item=>{
+    const cv=id=>id?item.column_values.find(c=>c.id===id):null;
+    const sc=item.column_values.find(c=>c.id==='status');
+    return {id:item.id,mondayId:item.id,titulo:item.name,
+      categoria:cv(catId)?.text||'Outro',
+      status:MONDAY_STATUS_MAP[sc?.text?.toLowerCase()?.replace(/ /g,'_')]||'Em andamento',
+      prazoInterno:fromMDate(cv(piId)?.value)||'',
+      prazoExterno:fromMDate(cv(peId)?.value)||'',
+      obs:cv(obsId)?.text||'',
+      _c:{piId,peId,catId,obsId}};
+  });
+}
+async function saveSol(apiKey,bid,mondayId,item,c) {
+  const vals={};
+  if(c.catId) vals[c.catId]=item.categoria;
+  if(c.piId&&item.prazoInterno) vals[c.piId]={date:item.prazoInterno};
+  if(c.peId&&item.prazoExterno) vals[c.peId]={date:item.prazoExterno};
+  if(c.obsId) vals[c.obsId]=item.obs||'';
+  vals['status']={label:item.status};
+  return upsertItem(apiKey,bid,mondayId,item.titulo,vals);
+}
+
+// ── Board: Atividades Semanais ────────────────────────────────────
+async function initBoardSeman(apiKey) {
+  return getOrCreateBoard(apiKey,BOARD_SEMAN,[
+    {title:'Dia',type:'text'},{title:'PrazoData',type:'date'},{title:'Comentarios',type:'text'},
+  ]);
+}
+async function fetchSemans(apiKey,bid) {
+  const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}items_page(limit:200){items{id name column_values{id text value}}}}}`);
+  const board=d.boards[0],cols=board?.columns||[],items=board?.items_page?.items||[];
+  const diaId=findCol(cols,'dia'),prazoId=findCol(cols,'prazodata'),cId=findCol(cols,'comentar');
+  return items.map(item=>{
+    const cv=id=>id?item.column_values.find(c=>c.id===id):null;
+    const sc=item.column_values.find(c=>c.id==='status');
+    let comentarios=[];
+    try{const raw=cv(cId)?.text;if(raw)comentarios=JSON.parse(raw);}catch{}
+    return {id:item.id,mondayId:item.id,titulo:item.name,
+      dia:cv(diaId)?.text||'Segunda',
+      feito:sc?.text?.toLowerCase()==='done',
+      prazoData:fromMDate(cv(prazoId)?.value)||'',
+      comentarios,
+      _c:{diaId,prazoId,cId}};
+  });
+}
+async function saveSeman(apiKey,bid,mondayId,item,c) {
+  const vals={};
+  if(c.diaId) vals[c.diaId]=item.dia;
+  if(c.prazoId&&item.prazoData) vals[c.prazoId]={date:item.prazoData};
+  else if(c.prazoId) vals[c.prazoId]={date:null};
+  // Serializar comentários – limitado a 2000 chars para caber no campo text
+  if(c.cId) {
+    const comStr = JSON.stringify(item.comentarios||[]);
+    vals[c.cId] = comStr.length>2000 ? JSON.stringify((item.comentarios||[]).slice(-20)) : comStr;
+  }
+  vals['status']={label:item.feito?'done':'not_started'};
+  return upsertItem(apiKey,bid,mondayId,item.titulo,vals);
+}
+
+// ── Board: Inadimplentes ──────────────────────────────────────────
+async function initBoardInadim(apiKey) {
+  return getOrCreateBoard(apiKey,BOARD_INADIM,[
+    {title:'Processo',type:'text'},{title:'Réus',type:'text'},
+    {title:'ValorCausa',type:'text'},{title:'DataAjuizamento',type:'date'},
+    {title:'Empreendimento',type:'text'},{title:'UltimoAndamento',type:'text'},
+    {title:'Observacao',type:'text'},{title:'NomeAcao',type:'text'},
+  ]);
+}
+async function fetchInadims(apiKey,bid) {
+  const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}items_page(limit:500){items{id name column_values{id text value}}}}}`);
+  const board=d.boards[0],cols=board?.columns||[],items=board?.items_page?.items||[];
+  const f=kw=>findCol(cols,kw);
+  const procId=f('processo'),reusId=f('réus'),valorId=f('valorcausa'),dataId=f('dataajuiz'),
+        empId=f('empreend'),andId=f('ultimoand'),obsId=f('observacao'),nomeId=f('nomeacao');
+  return {
+    items: items.map(item=>{
+      const cv=id=>id?item.column_values.find(c=>c.id===id):null;
+      const sc=item.column_values.find(c=>c.id==='status');
+      return {id:item.id,mondayId:item.id,
+        nomeAcao:cv(nomeId)?.text||item.name,
+        processo:cv(procId)?.text||'',
+        reus:cv(reusId)?.text||'',
+        valorCausa:cv(valorId)?.text||'',
+        dataAjuizamento:fromMDate(cv(dataId)?.value)||'',
+        empreendimento:cv(empId)?.text||'',
+        ultimoAndamento:cv(andId)?.text||'',
+        obs:cv(obsId)?.text||'',
+        status:sc?.text||'Em andamento',
+        _c:{procId,reusId,valorId,dataId,empId,andId,obsId,nomeId}};
+    }),
+    colIds:{procId,reusId,valorId,dataId,empId,andId,obsId,nomeId}
+  };
+}
+async function saveInadim(apiKey,bid,mondayId,item,c) {
+  const vals={};
+  if(c.procId) vals[c.procId]=item.processo||'';
+  if(c.reusId) vals[c.reusId]=item.reus||'';
+  if(c.valorId) vals[c.valorId]=item.valorCausa||'';
+  if(c.dataId&&item.dataAjuizamento) vals[c.dataId]={date:item.dataAjuizamento};
+  if(c.empId) vals[c.empId]=item.empreendimento||'';
+  if(c.andId) vals[c.andId]=item.ultimoAndamento||'';
+  if(c.obsId) vals[c.obsId]=item.obs||'';
+  if(c.nomeId) vals[c.nomeId]=item.nomeAcao||'';
+  vals['status']={label:item.status||'Em andamento'};
+  return upsertItem(apiKey,bid,mondayId,item.reus||item.nomeAcao||'Caso',vals);
+}
+
+// ── Board: Acordos ────────────────────────────────────────────────
+async function initBoardAcordos(apiKey) {
+  return getOrCreateBoard(apiKey,BOARD_ACORDOS,[
+    {title:'Processo',type:'text'},{title:'NomeCliente',type:'text'},
+    {title:'ValorAcordo',type:'text'},{title:'DataAcordo',type:'date'},
+    {title:'Empreendimento',type:'text'},{title:'Observacao',type:'text'},
+  ]);
+}
+async function fetchAcordos(apiKey,bid) {
+  const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}items_page(limit:200){items{id name column_values{id text value}}}}}`);
+  const board=d.boards[0],cols=board?.columns||[],items=board?.items_page?.items||[];
+  const f=kw=>findCol(cols,kw);
+  const procId=f('processo'),nomeId=f('nomecliente'),valorId=f('valoracordo'),
+        dataId=f('dataacordo'),empId=f('empreend'),obsId=f('observacao');
+  return {
+    items: items.map(item=>{
+      const cv=id=>id?item.column_values.find(c=>c.id===id):null;
+      return {id:item.id,mondayId:item.id,
+        processo:cv(procId)?.text||'',
+        nomeCliente:cv(nomeId)?.text||item.name,
+        valorAcordo:cv(valorId)?.text||'',
+        dataAcordo:fromMDate(cv(dataId)?.value)||'',
+        empreendimento:cv(empId)?.text||'',
+        obs:cv(obsId)?.text||''};
+    }),
+    colIds:{procId,nomeId,valorId,dataId,empId,obsId}
+  };
+}
+async function saveAcordo(apiKey,bid,mondayId,item,c) {
+  const vals={};
+  if(c.procId) vals[c.procId]=item.processo||'';
+  if(c.nomeId) vals[c.nomeId]=item.nomeCliente||'';
+  if(c.valorId) vals[c.valorId]=item.valorAcordo||'';
+  if(c.dataId&&item.dataAcordo) vals[c.dataId]={date:item.dataAcordo};
+  if(c.empId) vals[c.empId]=item.empreendimento||'';
+  if(c.obsId) vals[c.obsId]=item.obs||'';
+  return upsertItem(apiKey,bid,mondayId,item.nomeCliente||'Acordo',vals);
+}
+
+// ── Board: Config/Categorias ──────────────────────────────────────
+async function initBoardMeta(apiKey) {
+  return getOrCreateBoard(apiKey,BOARD_META,[{title:'Valor',type:'text'}]);
+}
+async function fetchCats(apiKey,bid) {
+  const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}items_page(limit:10){items{id name column_values{id text}}}}}`);
+  const board=d.boards[0],items=board?.items_page?.items||[],cols=board?.columns||[];
+  const valId=findCol(cols,'valor');
+  const item=items.find(i=>i.name.toLowerCase()==='categorias');
+  let cats=CATS_DEFAULT;
+  if(item){try{const cv=item.column_values.find(c=>c.id===valId);if(cv?.text)cats=JSON.parse(cv.text);}catch{}}
+  return {id:item?.id||null,cats,valId};
+}
+async function saveCatsMeta(apiKey,bid,cats,itemId,valId) {
+  const vals={}; if(valId) vals[valId]=JSON.stringify(cats);
+  return upsertItem(apiKey,bid,itemId,'categorias',vals);
+}
+
+// ── Board: PDI Progress ───────────────────────────────────────────
+async function fetchPDIProgress(apiKey,bid) {
+  const d = await mq(apiKey,`query{boards(ids:[${bid}]){columns{id title}items_page(limit:10){items{id name column_values{id text}}}}}`);
+  const board=d.boards[0],items=board?.items_page?.items||[],cols=board?.columns||[];
+  const valId=findCol(cols,'valor');
+  const item=items.find(i=>i.name.toLowerCase()==='pdi_progress');
+  let progress={};
+  if(item){try{const cv=item.column_values.find(c=>c.id===valId);if(cv?.text)progress=JSON.parse(cv.text);}catch{}}
+  return {id:item?.id||null,progress,valId};
+}
+async function savePDIProgress(apiKey,bid,progress,itemId,valId) {
+  const vals={}; if(valId) vals[valId]=JSON.stringify(progress);
+  return upsertItem(apiKey,bid,itemId,'pdi_progress',vals);
+}
+
+// ── PDI Data ──────────────────────────────────────────────────────
+const PDI_EIXOS = [
+  {
+    id:'prazos', icon:'⏰', cor:'#B7630A', corBg:'#FEF4E6',
+    titulo:'Previsibilidade e gestão de prazos',
+    objetivo:'Aumentar a confiabilidade na condução de demandas, reduzindo atrasos e tornando o status das entregas visível antes da cobrança.',
+    prazo:'Primeiros sinais em 30 dias; consolidação em 60–90 dias.',
+    indicadores:['Zero atraso sem aviso prévio justificado','100% das demandas verbais com registro mínimo','Redução da cobrança de status pela liderança','Report semanal enviado de forma recorrente'],
+    acoes:[
+      'Adotar regra única para toda demanda: entregável + prazo + responsável + status',
+      'Ao receber pedido verbal, registrar no Planner ou enviar e-mail de confirmação no mesmo dia',
+      'Sempre que houver dependência de terceiro, registrar pendência e data do último follow-up',
+      'Enviar report semanal para Flávia e Renata com três blocos: concluído, em andamento, risco/próximo passo',
+    ],
+  },
+  {
+    id:'qualidade', icon:'✅', cor:'#1A6B3C', corBg:'#E8F5EE',
+    titulo:'Qualidade e revisão final das entregas',
+    objetivo:'Aumentar a consistência técnica e operacional das entregas, reduzindo falhas de conferência e necessidade de retrabalho.',
+    prazo:'30–60 dias para estabilizar o hábito; 90 dias para medir consistência.',
+    indicadores:['Redução perceptível de ajustes por erro básico','Entregas com menos apontamentos de inconsistências','Menos revisões para tornar o texto menos redundante','Materiais com recomendação ou encaminhamento claro'],
+    acoes:[
+      'Usar checklist de 5 minutos antes de cada entrega: nomes, datas, valores, versão correta, ortografia',
+      'Em entregas curtas ou urgentes, realizar double check com intervalo mínimo de algumas horas',
+      'Em e-mails, incluir no início o risco envolvido (se houver) e/ou próximo passo sugerido',
+      'Para planilhas e relatórios, validar dados antes de informar que a tarefa foi concluída',
+    ],
+  },
+  {
+    id:'autonomia', icon:'🎯', cor:'#1A4A8A', corBg:'#E8EFF8',
+    titulo:'Autonomia com report e senso de dono',
+    objetivo:'Desenvolver autonomia responsável: apropriar-se da demanda, fazer follow-up, trazer recomendação e reportar sem depender de provocação constante.',
+    prazo:'60–120 dias, com avaliação intermediária no primeiro mês.',
+    indicadores:['Mais demandas registradas e concluídas com report espontâneo','Menor necessidade de intervenção para cobrar próximos passos','Perguntas mais qualificadas, com hipótese ou recomendação','Evidências de follow-up consistente em projetos e controles'],
+    acoes:[
+      'Quando houver dúvida, trazer sempre: contexto + riscos + opções + recomendação + próximo passo',
+      'Em demandas com mais de um ator, assumir o papel de dono do follow-up até o fechamento',
+      'Não esperar cobrança para relatar travas, mudança de plano ou ausência de retorno de terceiros',
+      'Em reuniões/projetos, sair com próximo passo definido e registrar a própria responsabilidade',
+    ],
+  },
+  {
+    id:'tecnico', icon:'📚', cor:'#5B21B6', corBg:'#EDE9FE',
+    titulo:'Aprofundamento técnico-jurídico',
+    objetivo:'Consolidar repertório em contratos, direito empresarial e contratual, com interesse crescente evidenciado nos feedbacks.',
+    prazo:'Desenvolvimento contínuo ao longo dos 6 meses.',
+    indicadores:['Entregas com maior precisão técnica','Menor dependência de consulta para contratos padrão','Participação ativa em discussões jurídicas','Capacidade de identificar riscos de forma proativa'],
+    acoes:[
+      'Estudar contratos padrão da empresa e suas cláusulas críticas',
+      'Acompanhar jurisprudência relevante nas áreas de atuação',
+      'Registrar dúvidas e aprendizados de cada demanda complexa',
+      'Buscar referência técnica antes de escalar para a liderança',
+    ],
+  },
+];
+
 // ── Componentes base ──────────────────────────────────────────────
-function Modal({ title, onClose, children, wide }) {
-  useEffect(() => {
-    const esc = e => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [onClose]);
+function Modal({title,onClose,children,wide,xl}) {
+  useEffect(()=>{
+    const h=e=>e.key==='Escape'&&onClose();
+    window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h);
+  },[onClose]);
   return (
-    <div className="overlay" onClick={e => e.target===e.currentTarget && onClose()}>
-      <div className={`modal modal-enter ${wide?"modal-wide":""}`}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"22px"}}>
-          <span style={{fontWeight:700,fontSize:"15px"}}>{title}</span>
-          <button onClick={onClose} style={{background:"none",border:"none",fontSize:"22px",cursor:"pointer",color:"var(--text3)",lineHeight:1,padding:0}}>×</button>
+    <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className={`modal modal-enter ${wide?'modal-wide':''} ${xl?'modal-xl':''}`}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'22px'}}>
+          <span style={{fontWeight:700,fontSize:'15px'}}>{title}</span>
+          <button onClick={onClose} style={{background:'none',border:'none',fontSize:'22px',cursor:'pointer',color:'var(--text3)',lineHeight:1,padding:0}}>×</button>
         </div>
         {children}
       </div>
     </div>
   );
 }
-function Field({ label, children }) {
-  return (
-    <div className="field">
-      <label>{label}</label>
-      {children}
-    </div>
-  );
+function Field({label,children,half}) {
+  return <div className="field" style={half?{flex:'1 1 45%'}:{}}><label>{label}</label>{children}</div>;
 }
-function PrazoTag({ label, dateStr }) {
-  const ps = prazoStatus(dateStr);
+function Row({children}) { return <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>{children}</div>; }
+function PrazoTag({label,ds}) {
+  const ps=prazoStatus(ds);
   return (
     <div className="prazo-tag">
-      <span className="label">{label}</span>
-      <span className="value" style={{background:ps.bg,color:ps.color}}>{ps.label}</span>
-      {dateStr && <span className="date">{fmt(dateStr)}</span>}
+      <span className="plabel">{label}</span>
+      <span className="pvalue" style={{background:ps.bg,color:ps.color}}>{ps.label}</span>
+      {ds&&<span className="pdate">{fmt(ds)}</span>}
     </div>
   );
 }
-function Checkbox({ checked, onClick }) {
+function Checkbox({checked,onClick}) {
   return (
-    <div className={`checkbox ${checked?"checked":""}`} onClick={e=>{e.stopPropagation();onClick();}}>
-      {checked && <span style={{color:"#fff",fontSize:"11px",fontWeight:700}}>✓</span>}
+    <div className={`checkbox ${checked?'checked':''}`} onClick={e=>{e.stopPropagation();onClick();}}>
+      {checked&&<span style={{color:'#fff',fontSize:'11px',fontWeight:700}}>✓</span>}
+    </div>
+  );
+}
+function ErrBox({msg}) { return msg?<div style={{background:'var(--red-light)',color:'var(--red)',fontSize:'12.5px',padding:'8px 12px',borderRadius:'8px',marginBottom:'12px'}}>{msg}</div>:null; }
+function SaveRow({onCancel,onSave,saving,label='Salvar'}) {
+  return (
+    <div style={{display:'flex',gap:'8px',justifyContent:'flex-end',borderTop:'1px solid var(--border)',paddingTop:'16px',marginTop:'4px'}}>
+      <button className="btn btn-ghost" onClick={onCancel}>Cancelar</button>
+      <button className="btn btn-primary" onClick={onSave} disabled={saving}>{saving?'Salvando…':label}</button>
     </div>
   );
 }
 
-// ── Modal Atividade Detalhes ──────────────────────────────────────
-function ModalAtividade({ atividade, onClose, onSave, saving }) {
-  const [novoComent, setNovoComent] = useState("");
-  const [novoDia,    setNovoDia]    = useState(atividade.dia);
-  const [novoPrazo,  setNovoPrazo]  = useState(atividade.prazoData || "");
-  const [comentarios, setComentarios] = useState(atividade.comentarios || []);
-  const [salvando, setSalvando] = useState(false);
+// ── Modal Atividade ───────────────────────────────────────────────
+function ModalAtividade({atividade,onClose,onSave}) {
+  const [titulo,   setTitulo]    = useState(atividade.titulo);
+  const [dia,      setDia]       = useState(atividade.dia);
+  const [prazoData,setPrazoData] = useState(atividade.prazoData||'');
+  const [coments,  setComents]   = useState(atividade.comentarios||[]);
+  const [novoC,    setNovoC]     = useState('');
+  const [saving,   setSaving]    = useState(false);
+  const [err,      setErr]       = useState('');
 
-  const adicionarComentario = () => {
-    if (!novoComent.trim()) return;
-    const c = { id: genId(), texto: novoComent.trim(), data: new Date().toISOString() };
-    setComentarios(prev => [...prev, c]);
-    setNovoComent("");
+  const addComent = () => {
+    if(!novoC.trim()) return;
+    setComents(p=>[...p,{id:genId(),texto:novoC.trim(),data:new Date().toISOString()}]);
+    setNovoC('');
   };
+  const delComent = id => setComents(p=>p.filter(c=>c.id!==id));
 
-  const removerComentario = (id) => setComentarios(prev => prev.filter(c => c.id !== id));
-
-  const handleSalvar = async () => {
-    setSalvando(true);
-    await onSave({ ...atividade, dia: novoDia, prazoData: novoPrazo, comentarios });
-    setSalvando(false);
-    onClose();
+  const handleSave = async () => {
+    if(!titulo.trim()){setErr('Informe o título.');return;}
+    setSaving(true);setErr('');
+    try {
+      await onSave({...atividade,titulo,dia,prazoData,comentarios:coments});
+      onClose();
+    } catch(e){setErr('Erro ao salvar: '+e.message);}
+    setSaving(false);
   };
-
-  const vencida = isVencida({ ...atividade, dia: novoDia, prazoData: novoPrazo });
 
   return (
-    <Modal title={atividade.titulo} onClose={onClose} wide>
-      <div style={{display:"flex",gap:"12px",marginBottom:"20px",flexWrap:"wrap"}}>
-        <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-          <span className={`seman-dia-badge ${vencida?"seman-vencida-badge":""}`}>{novoDia}</span>
-          {vencida && <span style={{fontSize:"11px",color:"var(--red)",fontWeight:600}}>Vencida</span>}
+    <Modal title="Detalhes da atividade" onClose={onClose} wide>
+      <Field label="Título"><input className="inp" value={titulo} onChange={e=>setTitulo(e.target.value)}/></Field>
+      <Row>
+        <Field label="Dia da semana" half>
+          <select className="inp" value={dia} onChange={e=>setDia(e.target.value)}>
+            {DIAS.map(d=><option key={d}>{d}</option>)}
+          </select>
+        </Field>
+        <Field label="Data específica (opcional)" half>
+          <input type="date" className="inp" value={prazoData} onChange={e=>setPrazoData(e.target.value)}/>
+        </Field>
+      </Row>
+      <div style={{marginBottom:'20px'}}>
+        <div style={{fontSize:'11.5px',fontWeight:700,color:'var(--text2)',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'10px'}}>
+          Comentários {coments.length>0&&<span style={{color:'var(--text3)',fontWeight:400}}>({coments.length})</span>}
         </div>
-      </div>
-
-      {/* Reagendar */}
-      <div style={{background:"var(--surface2)",borderRadius:"var(--radius-sm)",padding:"14px 16px",marginBottom:"20px"}}>
-        <div style={{fontSize:"11.5px",fontWeight:700,color:"var(--text2)",textTransform:"uppercase",letterSpacing:".05em",marginBottom:"12px"}}>Reagendar</div>
-        <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
-          <Field label="Dia da semana">
-            <select className="inp" value={novoDia} onChange={e=>setNovoDia(e.target.value)} style={{minWidth:"140px"}}>
-              {DIAS.map(d=><option key={d}>{d}</option>)}
-            </select>
-          </Field>
-          <Field label="Data específica (opcional)">
-            <input type="date" className="inp" value={novoPrazo} onChange={e=>setNovoPrazo(e.target.value)} style={{minWidth:"160px"}} />
-          </Field>
-        </div>
-      </div>
-
-      {/* Comentários */}
-      <div style={{marginBottom:"20px"}}>
-        <div style={{fontSize:"11.5px",fontWeight:700,color:"var(--text2)",textTransform:"uppercase",letterSpacing:".05em",marginBottom:"10px"}}>
-          Comentários {comentarios.length > 0 && <span style={{color:"var(--text3)",fontWeight:400}}>({comentarios.length})</span>}
-        </div>
-
-        {comentarios.length === 0 && (
-          <div style={{fontSize:"13px",color:"var(--text3)",padding:"12px 0"}}>Nenhum comentário ainda.</div>
-        )}
-
-        <div style={{maxHeight:"200px",overflowY:"auto",marginBottom:"12px"}}>
-          {comentarios.map(c => (
-            <div key={c.id} className="comentario-item">
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+        {coments.length===0&&<div style={{fontSize:'13px',color:'var(--text3)',padding:'8px 0'}}>Nenhum comentário ainda.</div>}
+        <div style={{maxHeight:'180px',overflowY:'auto',marginBottom:'10px'}}>
+          {coments.map(c=>(
+            <div key={c.id} className="coment-item">
+              <div style={{display:'flex',justifyContent:'space-between'}}>
                 <div className="meta">{fmtDT(c.data)}</div>
-                <button className="cat-remove" onClick={()=>removerComentario(c.id)} title="Remover comentário">✕</button>
+                <button onClick={()=>delComent(c.id)} style={{background:'none',border:'none',color:'var(--text3)',cursor:'pointer',fontSize:'13px'}}>✕</button>
               </div>
               <div className="texto">{c.texto}</div>
             </div>
           ))}
         </div>
-
-        <div style={{display:"flex",gap:"8px"}}>
-          <textarea
-            className="inp"
-            style={{resize:"none",height:"68px",flex:1}}
-            placeholder="Adicionar comentário… (ex: Verifiquei o processo em 06/05/2026)"
-            value={novoComent}
-            onChange={e=>setNovoComent(e.target.value)}
-            onKeyDown={e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) adicionarComentario(); }}
-          />
-          <button className="btn btn-primary" style={{alignSelf:"flex-end",whiteSpace:"nowrap"}} onClick={adicionarComentario}>
-            Adicionar
-          </button>
+        <div style={{display:'flex',gap:'8px'}}>
+          <textarea className="inp" style={{resize:'none',height:'64px',flex:1}}
+            placeholder="Adicionar comentário… (Ctrl+Enter para adicionar)"
+            value={novoC} onChange={e=>setNovoC(e.target.value)}
+            onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))addComent();}}/>
+          <button className="btn btn-primary" style={{alignSelf:'flex-end',whiteSpace:'nowrap'}} onClick={addComent}>Adicionar</button>
         </div>
-        <div style={{fontSize:"11px",color:"var(--text3)",marginTop:"5px"}}>Ctrl+Enter para adicionar rapidamente</div>
+        <div style={{fontSize:'11px',color:'var(--text3)',marginTop:'4px'}}>Ctrl+Enter para adicionar rapidamente</div>
       </div>
-
-      <div style={{display:"flex",gap:"8px",justifyContent:"flex-end",borderTop:"1px solid var(--border)",paddingTop:"16px"}}>
-        <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-        <button className="btn btn-primary" onClick={handleSalvar} disabled={salvando}>
-          {salvando ? "Salvando…" : "Salvar alterações"}
-        </button>
-      </div>
+      <ErrBox msg={err}/>
+      <SaveRow onCancel={onClose} onSave={handleSave} saving={saving}/>
     </Modal>
   );
 }
 
 // ── Modal Categorias ──────────────────────────────────────────────
-function ModalCategorias({ cats, onClose, onSave, saving }) {
-  const [lista, setLista] = useState([...cats]);
-  const [nova,  setNova]  = useState("");
-
-  const adicionar = () => {
-    const t = nova.trim();
-    if (!t || lista.includes(t)) return;
-    setLista(prev => [...prev, t]);
-    setNova("");
-  };
-  const remover = (c) => setLista(prev => prev.filter(x => x !== c));
-
+function ModalCats({cats,onClose,onSave,saving}) {
+  const [lista,setLista]=useState([...cats]);
+  const [nova,setNova]=useState('');
+  const add=()=>{const t=nova.trim();if(!t||lista.includes(t))return;setLista(p=>[...p,t]);setNova('');};
+  const rm=c=>setLista(p=>p.filter(x=>x!==c));
   return (
     <Modal title="Gerenciar categorias" onClose={onClose}>
-      <div style={{marginBottom:"16px",display:"flex",flexWrap:"wrap",gap:"4px",minHeight:"40px"}}>
-        {lista.map((c,i) => {
-          const cc = catColorPalette[i % catColorPalette.length];
-          return (
-            <span key={c} className="cat-tag" style={{background:cc.bg,color:cc.color}}>
-              {c}
-              <button className="cat-remove" onClick={()=>remover(c)} style={{color:cc.color}}>✕</button>
-            </span>
-          );
-        })}
-        {lista.length === 0 && <span style={{fontSize:"13px",color:"var(--text3)"}}>Nenhuma categoria.</span>}
+      <div style={{display:'flex',flexWrap:'wrap',gap:'4px',minHeight:'40px',marginBottom:'14px'}}>
+        {lista.map((c,i)=>{const cc=CAT_PALETTE[i%CAT_PALETTE.length];return(
+          <span key={c} className="cat-tag" style={{background:cc.bg,color:cc.color}}>
+            {c}<button onClick={()=>rm(c)} style={{background:'none',border:'none',cursor:'pointer',color:cc.color,fontSize:'12px',lineHeight:1}}>✕</button>
+          </span>
+        );})}
+        {lista.length===0&&<span style={{fontSize:'13px',color:'var(--text3)'}}>Nenhuma categoria.</span>}
       </div>
-      <div style={{display:"flex",gap:"8px",marginBottom:"20px"}}>
-        <input className="inp" placeholder="Nome da nova categoria" value={nova} onChange={e=>setNova(e.target.value)} onKeyDown={e=>e.key==="Enter"&&adicionar()} />
-        <button className="btn btn-primary" style={{whiteSpace:"nowrap"}} onClick={adicionar}>Adicionar</button>
+      <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
+        <input className="inp" placeholder="Nova categoria" value={nova} onChange={e=>setNova(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+        <button className="btn btn-primary" style={{whiteSpace:'nowrap'}} onClick={add}>Adicionar</button>
       </div>
-      <div style={{display:"flex",gap:"8px",justifyContent:"flex-end",borderTop:"1px solid var(--border)",paddingTop:"16px"}}>
+      <SaveRow onCancel={onClose} onSave={()=>onSave(lista)} saving={saving}/>
+    </Modal>
+  );
+}
+
+// ── Modal Solicitação ─────────────────────────────────────────────
+function ModalSol({initial,cats,onClose,onSave,saving}) {
+  const [form,setForm]=useState(initial||{titulo:'',categoria:cats[0]||'Contratos',status:'Em andamento',prazoInterno:'',prazoExterno:'',obs:''});
+  const [err,setErr]=useState('');
+  const set=k=>v=>setForm(p=>({...p,[k]:v}));
+  const handle=async()=>{
+    if(!form.titulo.trim()){setErr('Informe o título.');return;}
+    if(!form.prazoInterno){setErr('Informe o prazo interno.');return;}
+    if(!form.prazoExterno){setErr('Informe o prazo externo.');return;}
+    setErr('');
+    try{await onSave(form);}catch(e){setErr('Erro: '+e.message);}
+  };
+  return (
+    <Modal title={initial?.mondayId?'Editar solicitação':'Nova solicitação'} onClose={onClose}>
+      <Field label="Título *"><input className="inp" value={form.titulo} onChange={e=>set('titulo')(e.target.value)} placeholder="Descreva a solicitação"/></Field>
+      <Row>
+        <Field label="Categoria" half>
+          <select className="inp" value={form.categoria} onChange={e=>set('categoria')(e.target.value)}>
+            {cats.map(c=><option key={c}>{c}</option>)}
+          </select>
+        </Field>
+        <Field label="Status" half>
+          <select className="inp" value={form.status} onChange={e=>set('status')(e.target.value)}>
+            {STATUS_SOL.map(s=><option key={s}>{s}</option>)}
+          </select>
+        </Field>
+      </Row>
+      <Row>
+        <Field label="Prazo interno *" half><input type="date" className="inp" value={form.prazoInterno} onChange={e=>set('prazoInterno')(e.target.value)}/></Field>
+        <Field label="Prazo externo *" half><input type="date" className="inp" value={form.prazoExterno} onChange={e=>set('prazoExterno')(e.target.value)}/></Field>
+      </Row>
+      <Field label="Observações"><textarea className="inp" style={{resize:'vertical',minHeight:'72px'}} value={form.obs} onChange={e=>set('obs')(e.target.value)} placeholder="Informações adicionais (opcional)"/></Field>
+      <ErrBox msg={err}/>
+      <SaveRow onCancel={onClose} onSave={handle} saving={saving}/>
+    </Modal>
+  );
+}
+
+// ── Modal Inadimplente ────────────────────────────────────────────
+function ModalInadim({initial,onClose,onSave,saving}) {
+  const [form,setForm]=useState(initial||{nomeAcao:'Ação de execução extrajudicial',processo:'',reus:'',valorCausa:'',dataAjuizamento:'',empreendimento:'',ultimoAndamento:'',obs:'',status:'Em andamento'});
+  const [err,setErr]=useState('');
+  const set=k=>v=>setForm(p=>({...p,[k]:v}));
+  const handle=async()=>{
+    if(!form.reus.trim()){setErr('Informe o(s) réu(s).');return;}
+    setErr('');
+    try{await onSave(form);}catch(e){setErr('Erro: '+e.message);}
+  };
+  return (
+    <Modal title={initial?.mondayId?'Editar caso':'Novo caso'} onClose={onClose} wide>
+      <Row>
+        <Field label="Nome da ação" half><input className="inp" value={form.nomeAcao} onChange={e=>set('nomeAcao')(e.target.value)}/></Field>
+        <Field label="Número do processo" half><input className="inp" value={form.processo} onChange={e=>set('processo')(e.target.value)} placeholder="0000000-00.0000.0.00.0000"/></Field>
+      </Row>
+      <Field label="Réu(s) *"><input className="inp" value={form.reus} onChange={e=>set('reus')(e.target.value)} placeholder="Nome completo do réu"/></Field>
+      <Row>
+        <Field label="Valor da causa" half><input className="inp" value={form.valorCausa} onChange={e=>set('valorCausa')(e.target.value)} placeholder="R$ 0,00"/></Field>
+        <Field label="Data do ajuizamento" half><input type="date" className="inp" value={form.dataAjuizamento} onChange={e=>set('dataAjuizamento')(e.target.value)}/></Field>
+      </Row>
+      <Row>
+        <Field label="Empreendimento" half><input className="inp" value={form.empreendimento} onChange={e=>set('empreendimento')(e.target.value)}/></Field>
+        <Field label="Status" half>
+          <select className="inp" value={form.status} onChange={e=>set('status')(e.target.value)}>
+            {['Em andamento','Aguardando citação','Acordo celebrado','Arquivado','Suspenso'].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </Field>
+      </Row>
+      <Field label="Último andamento"><textarea className="inp" style={{resize:'vertical',minHeight:'60px'}} value={form.ultimoAndamento} onChange={e=>set('ultimoAndamento')(e.target.value)}/></Field>
+      <Field label="Observação"><textarea className="inp" style={{resize:'vertical',minHeight:'56px'}} value={form.obs} onChange={e=>set('obs')(e.target.value)}/></Field>
+      <ErrBox msg={err}/>
+      <SaveRow onCancel={onClose} onSave={handle} saving={saving}/>
+    </Modal>
+  );
+}
+
+// ── Modal Acordo ──────────────────────────────────────────────────
+function ModalAcordo({initial,onClose,onSave,saving}) {
+  const [form,setForm]=useState(initial||{processo:'',nomeCliente:'',valorAcordo:'',dataAcordo:'',empreendimento:'',obs:''});
+  const [err,setErr]=useState('');
+  const set=k=>v=>setForm(p=>({...p,[k]:v}));
+  const handle=async()=>{
+    if(!form.nomeCliente.trim()){setErr('Informe o nome do cliente.');return;}
+    setErr('');
+    try{await onSave(form);}catch(e){setErr('Erro: '+e.message);}
+  };
+  return (
+    <Modal title={initial?.mondayId?'Editar acordo':'Registrar acordo'} onClose={onClose}>
+      <Row>
+        <Field label="Número do processo" half><input className="inp" value={form.processo} onChange={e=>set('processo')(e.target.value)}/></Field>
+        <Field label="Nome do cliente" half><input className="inp" value={form.nomeCliente} onChange={e=>set('nomeCliente')(e.target.value)}/></Field>
+      </Row>
+      <Row>
+        <Field label="Valor do acordo" half><input className="inp" value={form.valorAcordo} onChange={e=>set('valorAcordo')(e.target.value)} placeholder="R$ 0,00"/></Field>
+        <Field label="Data do acordo" half><input type="date" className="inp" value={form.dataAcordo} onChange={e=>set('dataAcordo')(e.target.value)}/></Field>
+      </Row>
+      <Field label="Empreendimento"><input className="inp" value={form.empreendimento} onChange={e=>set('empreendimento')(e.target.value)}/></Field>
+      <Field label="Observação"><textarea className="inp" style={{resize:'vertical',minHeight:'56px'}} value={form.obs} onChange={e=>set('obs')(e.target.value)}/></Field>
+      <ErrBox msg={err}/>
+      <SaveRow onCancel={onClose} onSave={handle} saving={saving}/>
+    </Modal>
+  );
+}
+
+// ── Modal Confirm Delete ──────────────────────────────────────────
+function ModalConfirm({titulo,onClose,onConfirm,saving}) {
+  return (
+    <Modal title="Confirmar exclusão" onClose={onClose}>
+      <p style={{fontSize:'13.5px',color:'var(--text2)',marginBottom:'20px',lineHeight:1.6}}>
+        Tem certeza que deseja excluir <strong>"{titulo}"</strong>? Essa ação não pode ser desfeita.
+      </p>
+      <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
         <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-        <button className="btn btn-primary" onClick={()=>onSave(lista)} disabled={saving}>
-          {saving ? "Salvando…" : "Salvar"}
-        </button>
+        <button className="btn" style={{background:'var(--red)',color:'#fff'}} onClick={onConfirm} disabled={saving}>{saving?'Excluindo…':'Excluir'}</button>
       </div>
     </Modal>
   );
 }
 
-// ── App ───────────────────────────────────────────────────────────
-function App() {
-  const [apiKey,     setApiKey]     = useState("");
-  const [apiInput,   setApiInput]   = useState("");
-  const [connecting, setConnecting] = useState(false);
-  const [connError,  setConnError]  = useState("");
+// ── Aba Solicitações ──────────────────────────────────────────────
+function AbaSolicitacoes({apiKey,boardId,colIds,setColIds,cats}) {
+  const [items,setItems]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [filtroStatus,setFiltroStatus]=useState('Todos');
+  const [filtroCat,setFiltroCat]=useState('Todas');
+  const [busca,setBusca]=useState('');
+  const [modalNew,setModalNew]=useState(false);
+  const [modalEdit,setModalEdit]=useState(null);
+  const [confirmDel,setConfirmDel]=useState(null);
 
-  // Board IDs
-  const [boardSolId,   setBoardSolId]   = useState(null);
-  const [boardSemanId, setBoardSemanId] = useState(null);
-  const [boardMetaId,  setBoardMetaId]  = useState(null);
+  useEffect(()=>{load();},[boardId]);
 
-  // Col IDs
-  const [colIdsSol,   setColIdsSol]   = useState({});
-  const [colIdsSeman, setColIdsSeman] = useState({});
-
-  // Dados
-  const [solicitacoes, setSolicitacoes] = useState([]);
-  const [semanais,     setSemanais]     = useState([]);
-  const [cats,         setCats]         = useState(CATS_DEFAULT);
-  const [catItemId,    setCatItemId]    = useState(null);
-  const [catValId,     setCatValId]     = useState(null);
-
-  const [loading, setLoading] = useState(false);
-  const [saving,  setSaving]  = useState(false);
-
-  const [aba,          setAba]          = useState("solicitacoes");
-  const [filtroStatus, setFiltroStatus] = useState("Todos");
-  const [filtroCat,    setFiltroCat]    = useState("Todas");
-  const [busca,        setBusca]        = useState("");
-
-  // Modais
-  const [modalSol,      setModalSol]      = useState(false);
-  const [modalSeman,    setModalSeman]    = useState(false);
-  const [modalCats,     setModalCats]     = useState(false);
-  const [modalAtiv,     setModalAtiv]     = useState(null); // atividade selecionada
-  const [editSol,       setEditSol]       = useState(null);
-  const [editSeman,     setEditSeman]     = useState(null);
-  const [confirmDel,    setConfirmDel]    = useState(null);
-  const [formErr,       setFormErr]       = useState("");
-
-  const emptyFormSol  = { titulo:"", categoria: cats[0] || "Contratos", status:"Em andamento", prazoInterno:"", prazoExterno:"", obs:"" };
-  const [formSol,   setFormSol]   = useState(emptyFormSol);
-  const [formSeman, setFormSeman] = useState({ titulo:"", dia:"Segunda" });
-
-  // ── Init ──
-  useEffect(() => {
-    const k = localStorage.getItem("pg_monday_key");
-    if (k) { setApiKey(k); initAll(k); }
-  }, []);
-
-  const initAll = async (key) => {
-    setLoading(true); setConnError("");
-    try {
-      // Boards em paralelo
-      const [bSol, bSeman, bMeta] = await Promise.all([
-        initBoardSol(key),
-        initBoardSeman(key),
-        initBoardMeta(key),
-      ]);
-      setBoardSolId(bSol); setBoardSemanId(bSeman); setBoardMetaId(bMeta);
-      localStorage.setItem("pg_board_sol",   bSol);
-      localStorage.setItem("pg_board_seman", bSeman);
-      localStorage.setItem("pg_board_meta",  bMeta);
-
-      // Dados em paralelo
-      const [sols, semans, catData] = await Promise.all([
-        fetchSolicitacoes(key, bSol),
-        fetchSemanais(key, bSeman),
-        fetchCats(key, bMeta),
-      ]);
-      setSolicitacoes(sols);
-      setSemanais(semans);
-      setCats(catData.cats);
-      setCatItemId(catData.id);
-      setCatValId(catData.valId);
-
-      // Col IDs
-      if (sols.length > 0) setColIdsSol(sols[0]._colIds);
-      else {
-        const cols = await getBoardCols(key, bSol);
-        setColIdsSol({
-          piId:  findCol(cols,"prazo interno"),
-          peId:  findCol(cols,"prazo externo"),
-          catId: findCol(cols,"categoria"),
-          obsId: findCol(cols,"observa"),
-        });
-      }
-      if (semans.length > 0) setColIdsSeman(semans[0]._colIds);
-      else {
-        const cols = await getBoardCols(key, bSeman);
-        setColIdsSeman({
-          diaId:    findCol(cols,"dia"),
-          prazoId:  findCol(cols,"prazodata"),
-          comentId: findCol(cols,"coment"),
-        });
-      }
-    } catch(e) { setConnError("Erro ao conectar: " + e.message); }
-    setLoading(false);
-  };
-
-  const reloadAll = async () => {
-    if (!apiKey || !boardSolId) return;
+  const load=async()=>{
     setLoading(true);
-    try {
-      const [sols, semans, catData] = await Promise.all([
-        fetchSolicitacoes(apiKey, boardSolId),
-        fetchSemanais(apiKey, boardSemanId),
-        fetchCats(apiKey, boardMetaId),
-      ]);
-      setSolicitacoes(sols);
-      setSemanais(semans);
-      setCats(catData.cats);
-      setCatItemId(catData.id);
-      if (sols.length > 0)   setColIdsSol(sols[0]._colIds);
-      if (semans.length > 0) setColIdsSeman(semans[0]._colIds);
-    } catch(e) { console.error(e); }
+    try{
+      const r=await fetchSols(apiKey,boardId);
+      setItems(r);
+      if(r.length>0&&!colIds.piId) setColIds(r[0]._c);
+    }catch(e){console.error(e);}
     setLoading(false);
   };
 
-  const connect = async () => {
-    if (!apiInput.trim()) return;
-    setConnecting(true); setConnError("");
-    const key = apiInput.trim();
-    localStorage.setItem("pg_monday_key", key);
+  const getColIds=async()=>{
+    if(colIds.piId) return colIds;
+    const cols=await getBoardCols(apiKey,boardId);
+    const c={piId:findCol(cols,'prazo interno'),peId:findCol(cols,'prazo externo'),catId:findCol(cols,'categoria'),obsId:findCol(cols,'observa')};
+    setColIds(c);return c;
+  };
+
+  const handleSave=async(form,editItem)=>{
+    setSaving(true);
+    try{
+      const c=await getColIds();
+      const id=await saveSol(apiKey,boardId,editItem?.mondayId||null,form,c);
+      if(editItem) setItems(p=>p.map(x=>x.mondayId===editItem.mondayId?{...x,...form}:x));
+      else setItems(p=>[...p,{...form,id,mondayId:id,_c:c}]);
+      setModalNew(false);setModalEdit(null);
+    }catch(e){throw e;}
+    setSaving(false);
+  };
+
+  const handleStatus=async(item,status)=>{
+    setItems(p=>p.map(x=>x.mondayId===item.mondayId?{...x,status}:x));
+    const c=await getColIds();
+    try{await saveSol(apiKey,boardId,item.mondayId,{...item,status},c);}catch{}
+  };
+
+  const handleDelete=async()=>{
+    setSaving(true);
+    try{await deleteItem(apiKey,confirmDel.mondayId);setItems(p=>p.filter(x=>x.mondayId!==confirmDel.mondayId));}
+    catch(e){alert('Erro: '+e.message);}
+    setSaving(false);setConfirmDel(null);
+  };
+
+  const criticos=items.filter(isCritico);
+  const prazosInternos=items.filter(s=>s.status!=='Concluído'&&isHoje(s.prazoInterno));
+  const prazosExternos=items.filter(s=>s.status!=='Concluído'&&isHoje(s.prazoExterno));
+
+  const filtrados=items.filter(s=>
+    (filtroStatus==='Todos'||s.status===filtroStatus)&&
+    (filtroCat==='Todas'||s.categoria===filtroCat)&&
+    (!busca.trim()||s.titulo.toLowerCase().includes(busca.toLowerCase())||(s.obs||'').toLowerCase().includes(busca.toLowerCase()))
+  ).sort((a,b)=>new Date(a.prazoInterno)-new Date(b.prazoInterno));
+
+  return (
+    <div className="card-enter">
+      {/* mini stats */}
+      <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap'}}>
+        {[
+          {label:'Prazos internos hoje',value:prazosInternos.length,color:'var(--amber)',bg:'var(--amber-light)',border:'#FDE68A'},
+          {label:'Prazos externos hoje',value:prazosExternos.length,color:'var(--blue)',bg:'var(--blue-light)',border:'#BFDBFE'},
+        ].map((c,i)=>(
+          <div key={i} style={{background:c.bg,border:`1.5px solid ${c.border}`,borderRadius:'var(--radius-sm)',padding:'8px 16px',display:'flex',gap:'10px',alignItems:'center'}}>
+            <span style={{fontSize:'22px',fontWeight:700,color:c.color,fontFamily:'DM Mono,monospace'}}>{c.value}</span>
+            <span style={{fontSize:'12px',color:'var(--text2)',fontWeight:500}}>{c.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {criticos.length>0&&(
+        <div className="alerta alerta-critico">
+          <span>⚠️</span><strong>{criticos.length} prazo{criticos.length>1?'s':''} interno{criticos.length>1?'s':''} crítico{criticos.length>1?'s':''}</strong><span>– vence hoje</span>
+        </div>
+      )}
+
+      <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap',alignItems:'center'}}>
+        <input className="inp" style={{flex:'1 1 180px'}} placeholder="Buscar…" value={busca} onChange={e=>setBusca(e.target.value)}/>
+        <select className="inp" value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)} style={{width:'auto',flex:'1 1 140px'}}>
+          <option value="Todos">Todos os status</option>
+          {STATUS_SOL.map(s=><option key={s}>{s}</option>)}
+        </select>
+        <select className="inp" value={filtroCat} onChange={e=>setFiltroCat(e.target.value)} style={{width:'auto',flex:'1 1 140px'}}>
+          <option value="Todas">Todas as categorias</option>
+          {cats.map(c=><option key={c}>{c}</option>)}
+        </select>
+        <button className="btn btn-primary" onClick={()=>setModalNew(true)}>+ Nova solicitação</button>
+      </div>
+
+      {loading&&<div style={{textAlign:'center',color:'var(--text3)',padding:'48px'}}>Carregando…</div>}
+      {!loading&&filtrados.length===0&&<div className="empty-state"><div className="icon">📋</div><div>Nenhuma solicitação encontrada.</div></div>}
+
+      <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+        {filtrados.map(s=>{
+          const crit=isCritico(s);
+          const cc=catColor(cats,s.categoria);
+          const sc=STATUS_COLOR[s.status]||STATUS_COLOR['Em andamento'];
+          return (
+            <div key={s.mondayId} className={`sol-card card-enter ${crit?'critico':''} ${s.status==='Concluído'?'concluido':''}`}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px',flexWrap:'wrap'}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:600,fontSize:'14px',color:'var(--text)',marginBottom:'7px'}}>{s.titulo}</div>
+                  <div style={{display:'flex',gap:'6px',flexWrap:'wrap',alignItems:'center'}}>
+                    <span className="badge" style={{background:cc.bg,color:cc.color}}>{s.categoria}</span>
+                    <select className="status-sel" value={s.status} onChange={e=>handleStatus(s,e.target.value)} style={{background:sc.bg,color:sc.color}}>
+                      {STATUS_SOL.map(st=><option key={st}>{st}</option>)}
+                    </select>
+                  </div>
+                  {s.obs&&<div style={{fontSize:'12px',color:'var(--text3)',marginTop:'7px',lineHeight:1.5}}>{s.obs}</div>}
+                </div>
+                <div style={{display:'flex',gap:'14px',alignItems:'center',flexShrink:0}}>
+                  <PrazoTag label="Interno" ds={s.prazoInterno}/>
+                  <PrazoTag label="Externo" ds={s.prazoExterno}/>
+                  <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+                    <button className="btn btn-ghost" style={{padding:'5px 12px',fontSize:'12px'}} onClick={()=>setModalEdit(s)}>Editar</button>
+                    <button className="btn btn-danger" style={{padding:'5px 12px',fontSize:'12px'}} onClick={()=>setConfirmDel(s)}>Excluir</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {modalNew&&<ModalSol cats={cats} onClose={()=>setModalNew(false)} onSave={f=>handleSave(f,null)} saving={saving}/>}
+      {modalEdit&&<ModalSol initial={modalEdit} cats={cats} onClose={()=>setModalEdit(null)} onSave={f=>handleSave(f,modalEdit)} saving={saving}/>}
+      {confirmDel&&<ModalConfirm titulo={confirmDel.titulo} onClose={()=>setConfirmDel(null)} onConfirm={handleDelete} saving={saving}/>}
+    </div>
+  );
+}
+
+// ── Aba Atividades Semanais ───────────────────────────────────────
+function AbaSemanais({apiKey,boardId}) {
+  const [items,setItems]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [modalAtiv,setModalAtiv]=useState(null);
+  const [modalNew,setModalNew]=useState(false);
+  const [editForm,setEditForm]=useState(null);
+  const [confirmDel,setConfirmDel]=useState(null);
+  const [colIds,setColIds]=useState({});
+
+  useEffect(()=>{load();},[boardId]);
+
+  const load=async()=>{
+    setLoading(true);
+    try{
+      const r=await fetchSemans(apiKey,boardId);
+      setItems(r);
+      if(r.length>0) setColIds(r[0]._c);
+    }catch(e){console.error(e);}
+    setLoading(false);
+  };
+
+  const getC=async()=>{
+    if(colIds.diaId) return colIds;
+    const cols=await getBoardCols(apiKey,boardId);
+    const c={diaId:findCol(cols,'dia'),prazoId:findCol(cols,'prazodata'),cId:findCol(cols,'comentar')};
+    setColIds(c);return c;
+  };
+
+  const handleSaveAtiv=async(updated)=>{
+    const c=await getC();
+    await saveSeman(apiKey,boardId,updated.mondayId,updated,c);
+    setItems(p=>p.map(x=>x.mondayId===updated.mondayId?{...updated,_c:c}:x));
+  };
+
+  const handleNew=async(form)=>{
+    setSaving(true);
+    try{
+      const c=await getC();
+      const novo={titulo:form.titulo,dia:form.dia,feito:false,prazoData:'',comentarios:[],_c:c};
+      const id=await saveSeman(apiKey,boardId,null,novo,c);
+      setItems(p=>[...p,{...novo,id,mondayId:id}]);
+      setModalNew(false);setEditForm(null);
+    }catch(e){alert('Erro: '+e.message);}
+    setSaving(false);
+  };
+
+  const handleEdit=async(form)=>{
+    setSaving(true);
+    try{
+      const c=await getC();
+      const updated={...editForm,...form,_c:c};
+      await saveSeman(apiKey,boardId,editForm.mondayId,updated,c);
+      setItems(p=>p.map(x=>x.mondayId===editForm.mondayId?updated:x));
+      setEditForm(null);
+    }catch(e){alert('Erro: '+e.message);}
+    setSaving(false);
+  };
+
+  const toggleFeito=async(t)=>{
+    const updated={...t,feito:!t.feito};
+    setItems(p=>p.map(x=>x.mondayId===t.mondayId?updated:x));
+    const c=await getC();
+    try{await saveSeman(apiKey,boardId,t.mondayId,updated,c);}catch{}
+  };
+
+  const handleDelete=async()=>{
+    setSaving(true);
+    try{await deleteItem(apiKey,confirmDel.mondayId);setItems(p=>p.filter(x=>x.mondayId!==confirmDel.mondayId));}
+    catch(e){alert('Erro: '+e.message);}
+    setSaving(false);setConfirmDel(null);
+  };
+
+  const resetSemana=async()=>{
+    const updated=items.map(t=>({...t,feito:false}));
+    setItems(updated);
+    const c=await getC();
+    try{await Promise.all(updated.map(t=>saveSeman(apiKey,boardId,t.mondayId,t,c)));}catch{}
+  };
+
+  const vencidas=items.filter(isVencida);
+
+  return (
+    <div className="card-enter">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
+        <span style={{fontSize:'12.5px',color:'var(--text3)'}}>Clique na atividade para abrir detalhes e comentários</span>
+        <div style={{display:'flex',gap:'8px'}}>
+          <button className="btn btn-ghost" onClick={resetSemana}>↺ Reiniciar semana</button>
+          <button className="btn btn-primary" onClick={()=>setModalNew(true)}>+ Nova atividade</button>
+        </div>
+      </div>
+
+      {vencidas.length>0&&(
+        <div className="alerta alerta-critico" style={{marginBottom:'16px'}}>
+          <span>⏰</span><strong>{vencidas.length} atividade{vencidas.length>1?'s':''} vencida{vencidas.length>1?'s':''}</strong>
+          <span>– reagende ou marque como concluída</span>
+        </div>
+      )}
+
+      {loading&&<div style={{textAlign:'center',color:'var(--text3)',padding:'48px'}}>Carregando…</div>}
+      {!loading&&items.length===0&&<div className="empty-state"><div className="icon">📅</div><div>Nenhuma atividade cadastrada.</div></div>}
+
+      {DIAS.map(dia=>{
+        const tarefas=items.filter(t=>t.dia===dia);
+        if(!tarefas.length) return null;
+        return (
+          <div key={dia} style={{marginBottom:'22px'}}>
+            <div className="dia-header">{dia}</div>
+            <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+              {tarefas.map(t=>{
+                const venc=isVencida(t);
+                return (
+                  <div key={t.mondayId} className={`seman-card ${venc&&!t.feito?'vencida':''}`} onClick={()=>setModalAtiv(t)}>
+                    <Checkbox checked={t.feito} onClick={()=>toggleFeito(t)}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <span style={{fontSize:'13.5px',textDecoration:t.feito?'line-through':'none',color:t.feito?'var(--text3)':'var(--text)',userSelect:'none'}}>{t.titulo}</span>
+                      {t.comentarios?.length>0&&<span style={{fontSize:'11px',color:'var(--text3)',marginLeft:'8px'}}>💬 {t.comentarios.length}</span>}
+                      {t.prazoData&&<span style={{fontSize:'11px',color:'var(--text3)',marginLeft:'8px',fontFamily:'DM Mono,monospace'}}>📅 {fmt(t.prazoData)}</span>}
+                    </div>
+                    {venc&&!t.feito&&<span className="badge" style={{background:'var(--red-light)',color:'var(--red)',fontSize:'10px'}}>Vencida</span>}
+                    <button onClick={e=>{e.stopPropagation();setEditForm(t);}} style={{background:'none',border:'none',color:'var(--text3)',fontSize:'12px',cursor:'pointer',padding:'2px 8px'}}>Editar</button>
+                    <button onClick={e=>{e.stopPropagation();setConfirmDel(t);}} style={{background:'none',border:'none',color:'var(--red)',fontSize:'14px',cursor:'pointer',padding:'2px 8px'}}>✕</button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {modalAtiv&&(
+        <ModalAtividade atividade={modalAtiv} onClose={()=>setModalAtiv(null)} onSave={async u=>{await handleSaveAtiv(u);setModalAtiv(null);}}/>
+      )}
+
+      {modalNew&&(
+        <Modal title="Nova atividade semanal" onClose={()=>setModalNew(false)}>
+          {(()=>{
+            const [f,setF]=useState({titulo:'',dia:'Segunda'});
+            return <>
+              <Field label="Título *"><input className="inp" value={f.titulo} onChange={e=>setF(p=>({...p,titulo:e.target.value}))} placeholder="Nome da atividade"/></Field>
+              <Field label="Dia da semana">
+                <select className="inp" value={f.dia} onChange={e=>setF(p=>({...p,dia:e.target.value}))}>
+                  {DIAS.map(d=><option key={d}>{d}</option>)}
+                </select>
+              </Field>
+              <SaveRow onCancel={()=>setModalNew(false)} onSave={()=>handleNew(f)} saving={saving}/>
+            </>;
+          })()}
+        </Modal>
+      )}
+
+      {editForm&&(
+        <Modal title="Editar atividade" onClose={()=>setEditForm(null)}>
+          {(()=>{
+            const [f,setF]=useState({titulo:editForm.titulo,dia:editForm.dia});
+            return <>
+              <Field label="Título *"><input className="inp" value={f.titulo} onChange={e=>setF(p=>({...p,titulo:e.target.value}))}/></Field>
+              <Field label="Dia da semana">
+                <select className="inp" value={f.dia} onChange={e=>setF(p=>({...p,dia:e.target.value}))}>
+                  {DIAS.map(d=><option key={d}>{d}</option>)}
+                </select>
+              </Field>
+              <SaveRow onCancel={()=>setEditForm(null)} onSave={()=>handleEdit(f)} saving={saving}/>
+            </>;
+          })()}
+        </Modal>
+      )}
+
+      {confirmDel&&<ModalConfirm titulo={confirmDel.titulo} onClose={()=>setConfirmDel(null)} onConfirm={handleDelete} saving={saving}/>}
+    </div>
+  );
+}
+
+// ── Aba Projeto Inadimplentes ─────────────────────────────────────
+function AbaInadimplentes({apiKey,boardInadimId,boardAcordosId}) {
+  const [casos,setCasos]=useState([]);
+  const [acordos,setAcordos]=useState([]);
+  const [casosColIds,setCasosColIds]=useState({});
+  const [acordosColIds,setAcordosColIds]=useState({});
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [subAba,setSubAba]=useState('casos');
+  const [modalCaso,setModalCaso]=useState(false);
+  const [editCaso,setEditCaso]=useState(null);
+  const [modalAcordo,setModalAcordo]=useState(false);
+  const [editAcordo,setEditAcordo]=useState(null);
+  const [confirmDel,setConfirmDel]=useState(null);
+  const [busca,setBusca]=useState('');
+  const [filtroEmp,setFiltroEmp]=useState('Todos');
+  const [importando,setImportando]=useState(false);
+  const [importMsg,setImportMsg]=useState('');
+  const fileRef=useRef();
+
+  useEffect(()=>{load();},[boardInadimId,boardAcordosId]);
+
+  const load=async()=>{
+    setLoading(true);
+    try{
+      const [rc,ra]=await Promise.all([fetchInadims(apiKey,boardInadimId),fetchAcordos(apiKey,boardAcordosId)]);
+      setCasos(rc.items);setCasosColIds(rc.colIds);
+      setAcordos(ra.items);setAcordosColIds(ra.colIds);
+    }catch(e){console.error(e);}
+    setLoading(false);
+  };
+
+  const getCC=async()=>{
+    if(casosColIds.procId) return casosColIds;
+    const cols=await getBoardCols(apiKey,boardInadimId);
+    const c={procId:findCol(cols,'processo'),reusId:findCol(cols,'réus'),valorId:findCol(cols,'valorcausa'),dataId:findCol(cols,'dataajuiz'),empId:findCol(cols,'empreend'),andId:findCol(cols,'ultimoand'),obsId:findCol(cols,'observacao'),nomeId:findCol(cols,'nomeacao')};
+    setCasosColIds(c);return c;
+  };
+  const getAC=async()=>{
+    if(acordosColIds.procId) return acordosColIds;
+    const cols=await getBoardCols(apiKey,boardAcordosId);
+    const c={procId:findCol(cols,'processo'),nomeId:findCol(cols,'nomecliente'),valorId:findCol(cols,'valoracordo'),dataId:findCol(cols,'dataacordo'),empId:findCol(cols,'empreend'),obsId:findCol(cols,'observacao')};
+    setAcordosColIds(c);return c;
+  };
+
+  const handleSaveCaso=async(form,editItem)=>{
+    setSaving(true);
+    try{
+      const c=await getCC();
+      const id=await saveInadim(apiKey,boardInadimId,editItem?.mondayId||null,form,c);
+      if(editItem) setCasos(p=>p.map(x=>x.mondayId===editItem.mondayId?{...x,...form}:x));
+      else setCasos(p=>[...p,{...form,id,mondayId:id,_c:c}]);
+      setModalCaso(false);setEditCaso(null);
+    }catch(e){throw e;}
+    setSaving(false);
+  };
+
+  const handleSaveAcordo=async(form,editItem)=>{
+    setSaving(true);
+    try{
+      const c=await getAC();
+      const id=await saveAcordo(apiKey,boardAcordosId,editItem?.mondayId||null,form,c);
+      if(editItem) setAcordos(p=>p.map(x=>x.mondayId===editItem.mondayId?{...x,...form}:x));
+      else setAcordos(p=>[...p,{...form,id,mondayId:id}]);
+      setModalAcordo(false);setEditAcordo(null);
+    }catch(e){throw e;}
+    setSaving(false);
+  };
+
+  const handleDelete=async()=>{
+    setSaving(true);
+    try{
+      await deleteItem(apiKey,confirmDel.mondayId);
+      if(confirmDel._type==='caso') setCasos(p=>p.filter(x=>x.mondayId!==confirmDel.mondayId));
+      else setAcordos(p=>p.filter(x=>x.mondayId!==confirmDel.mondayId));
+    }catch(e){alert('Erro: '+e.message);}
+    setSaving(false);setConfirmDel(null);
+  };
+
+  // ── Importação de planilha ────────────────────────────────────
+  const handleImport=async(file)=>{
+    if(!file) return;
+    setImportando(true);setImportMsg('Lendo planilha…');
+    try{
+      const buf=await file.arrayBuffer();
+      const wb=XLSX.read(buf,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      // Encontrar linha de cabeçalho
+      let hdrIdx=rows.findIndex(r=>r.some(c=>String(c).toUpperCase().includes('NOME DA AÇ')||String(c).toUpperCase().includes('PROCESSO')));
+      if(hdrIdx<0) hdrIdx=1;
+      const hdrs=rows[hdrIdx].map(h=>String(h).trim().toUpperCase());
+      const col=kw=>hdrs.findIndex(h=>h.includes(kw));
+      const iNome=col('NOME DA AÇ'),iProc=col('PROCESSO'),iReus=col('RÉU'),iStatus=col('STATUS'),
+            iValor=col('VALOR DA CAUSA'),iData=col('DATA DO AJUIZ'),iEmp=col('EMPREEND'),
+            iAnd=col('ÚLTIMO ANDAMENTO'),iObs=col('OBSERVAÇ');
+      const dataRows=rows.slice(hdrIdx+1).filter(r=>r.some(c=>String(c).trim()));
+
+      const c=await getCC();
+      let novos=0,atualizados=0;
+      for(const row of dataRows){
+        const processo=String(row[iProc]||'').trim();
+        const reus=String(row[iReus]||'').trim();
+        if(!reus&&!processo) continue;
+
+        // Converter data Excel serial
+        let dataAjuiz='';
+        if(row[iData]){
+          const raw=row[iData];
+          if(typeof raw==='number'){
+            const d=new Date(Math.round((raw-25569)*86400*1000));
+            dataAjuiz=d.toISOString().split('T')[0];
+          } else {
+            const parsed=new Date(raw);
+            if(!isNaN(parsed)) dataAjuiz=parsed.toISOString().split('T')[0];
+          }
+        }
+
+        const form={
+          nomeAcao:String(row[iNome]||'Ação de execução extrajudicial').trim(),
+          processo,reus,
+          valorCausa:String(row[iValor]||'').trim(),
+          dataAjuizamento:dataAjuiz,
+          empreendimento:String(row[iEmp]||'').trim(),
+          ultimoAndamento:String(row[iAnd]||'').trim(),
+          obs:String(row[iObs]||'').trim(),
+          status:String(row[iStatus]||'Em andamento').trim()||'Em andamento',
+        };
+
+        // Verificar duplicata pelo processo ou réu
+        const existing=casos.find(x=>(processo&&x.processo===processo)||(reus&&x.reus===reus&&!processo));
+        if(existing){
+          await saveInadim(apiKey,boardInadimId,existing.mondayId,{...existing,...form},c);
+          setCasos(p=>p.map(x=>x.mondayId===existing.mondayId?{...x,...form}:x));
+          atualizados++;
+        } else {
+          const id=await saveInadim(apiKey,boardInadimId,null,form,c);
+          setCasos(p=>[...p,{...form,id,mondayId:id,_c:c}]);
+          novos++;
+        }
+      }
+      setImportMsg(`✅ Importação concluída: ${novos} novo${novos!==1?'s':''}, ${atualizados} atualizado${atualizados!==1?'s':''}`);
+    }catch(e){setImportMsg('❌ Erro na importação: '+e.message);}
+    setImportando(false);
+  };
+
+  const emps=[...new Set(casos.map(c=>c.empreendimento).filter(Boolean))].sort();
+  const casosFiltrados=casos.filter(c=>
+    (filtroEmp==='Todos'||c.empreendimento===filtroEmp)&&
+    (!busca||c.reus.toLowerCase().includes(busca.toLowerCase())||c.processo.includes(busca)||c.empreendimento.toLowerCase().includes(busca.toLowerCase()))
+  );
+
+  // ── Gráficos ──────────────────────────────────────────────────
+  const parseVal=str=>{const n=parseFloat(String(str).replace(/[^0-9.,]/g,'').replace(',','.'));return isNaN(n)?0:n;};
+  const totalCausas=casos.reduce((s,c)=>s+parseVal(c.valorCausa),0);
+  const totalAcordos=acordos.reduce((s,a)=>s+parseVal(a.valorAcordo),0);
+  const pctRecup=totalCausas>0?((totalAcordos/totalCausas)*100).toFixed(1):0;
+
+  const empStats={};
+  casos.forEach(c=>{const e=c.empreendimento||'Não informado';empStats[e]=(empStats[e]||0)+1;});
+  const empArr=Object.entries(empStats).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxEmp=Math.max(...empArr.map(e=>e[1]),1);
+
+  return (
+    <div className="card-enter">
+      {/* Sub-abas */}
+      <div style={{display:'flex',gap:'2px',borderBottom:'2px solid var(--border)',marginBottom:'20px'}}>
+        {[['casos','Casos ajuizados'],['acordos','Acordos realizados'],['graficos','Painel visual']].map(([k,l])=>(
+          <button key={k} className={`tab-btn ${subAba===k?'active':''}`} onClick={()=>setSubAba(k)}>{l}</button>
+        ))}
+      </div>
+
+      {/* ── Casos ── */}
+      {subAba==='casos'&&(
+        <div>
+          {/* Importação */}
+          <div style={{background:'var(--surface)',border:'1.5px solid var(--border)',borderRadius:'var(--radius)',padding:'16px 20px',marginBottom:'20px'}}>
+            <div style={{fontSize:'12px',fontWeight:700,color:'var(--text2)',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'10px'}}>Importar planilha mensal</div>
+            <div className={`import-zone ${importando?'drag':''}`} onClick={()=>!importando&&fileRef.current.click()}>
+              <div style={{fontSize:'24px',marginBottom:'8px'}}>📂</div>
+              <div style={{fontSize:'13.5px',fontWeight:600,color:'var(--text2)'}}>Clique para importar planilha (.xlsx)</div>
+              <div style={{fontSize:'12px',color:'var(--text3)',marginTop:'4px'}}>Casos existentes serão atualizados pelo número do processo. Novos casos serão adicionados automaticamente.</div>
+            </div>
+            <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{display:'none'}} onChange={e=>{if(e.target.files[0])handleImport(e.target.files[0]);e.target.value='';}}/>
+            {importando&&<div style={{marginTop:'10px',fontSize:'13px',color:'var(--text2)'}}>⏳ {importMsg}</div>}
+            {!importando&&importMsg&&<div style={{marginTop:'10px',fontSize:'13px',color:importMsg.startsWith('✅')?'var(--green)':'var(--red)'}}>{importMsg}</div>}
+          </div>
+
+          <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap',alignItems:'center'}}>
+            <input className="inp" style={{flex:'1 1 180px'}} placeholder="Buscar por réu, processo ou empreendimento…" value={busca} onChange={e=>setBusca(e.target.value)}/>
+            <select className="inp" value={filtroEmp} onChange={e=>setFiltroEmp(e.target.value)} style={{width:'auto',flex:'1 1 140px'}}>
+              <option value="Todos">Todos os empreendimentos</option>
+              {emps.map(e=><option key={e}>{e}</option>)}
+            </select>
+            <button className="btn btn-primary" onClick={()=>setModalCaso(true)}>+ Novo caso</button>
+          </div>
+
+          <div style={{fontSize:'12.5px',color:'var(--text3)',marginBottom:'10px'}}>{casosFiltrados.length} caso{casosFiltrados.length!==1?'s':''} encontrado{casosFiltrados.length!==1?'s':''}</div>
+
+          {loading&&<div style={{textAlign:'center',color:'var(--text3)',padding:'48px'}}>Carregando…</div>}
+          {!loading&&casosFiltrados.length===0&&<div className="empty-state"><div className="icon">⚖️</div><div>Nenhum caso encontrado.</div></div>}
+
+          <div className="table-scroll">
+            {casosFiltrados.length>0&&(
+              <div style={{minWidth:'700px'}}>
+                <div className="inadim-row inadim-header" style={{background:'var(--surface2)',borderRadius:'var(--radius-sm) var(--radius-sm) 0 0',borderBottom:'none'}}>
+                  <span>Réu(s)</span><span>Processo</span><span>Empreendimento</span><span>Valor da causa</span><span>Ajuizamento</span><span>Status</span><span></span>
+                </div>
+                {casosFiltrados.map(c=>(
+                  <div key={c.mondayId} className="inadim-row" style={{background:'var(--surface)'}}>
+                    <div>
+                      <div style={{fontWeight:600,fontSize:'13px'}}>{c.reus}</div>
+                      {c.nomeAcao&&<div style={{fontSize:'11px',color:'var(--text3)'}}>{c.nomeAcao}</div>}
+                      {c.ultimoAndamento&&<div style={{fontSize:'11px',color:'var(--text3)',marginTop:'2px',fontStyle:'italic'}}>{c.ultimoAndamento.slice(0,60)}{c.ultimoAndamento.length>60?'…':''}</div>}
+                    </div>
+                    <div style={{fontSize:'12px',fontFamily:'DM Mono,monospace',color:'var(--text2)'}}>{c.processo||'–'}</div>
+                    <div style={{fontSize:'12px'}}>{c.empreendimento||'–'}</div>
+                    <div style={{fontSize:'12px',fontFamily:'DM Mono,monospace'}}>{c.valorCausa?fmtBRL(c.valorCausa):'–'}</div>
+                    <div style={{fontSize:'12px',fontFamily:'DM Mono,monospace'}}>{c.dataAjuizamento?fmt(c.dataAjuizamento):'–'}</div>
+                    <div>
+                      <span className="badge" style={{fontSize:'10px',background:c.status==='Acordo celebrado'?'var(--green-light)':c.status==='Arquivado'?'var(--surface2)':'var(--blue-light)',color:c.status==='Acordo celebrado'?'var(--green)':c.status==='Arquivado'?'var(--text3)':'var(--blue)'}}>{c.status}</span>
+                    </div>
+                    <div style={{display:'flex',gap:'4px'}}>
+                      <button className="btn btn-ghost" style={{padding:'4px 10px',fontSize:'11px'}} onClick={()=>setEditCaso(c)}>Editar</button>
+                      <button className="btn btn-danger" style={{padding:'4px 8px',fontSize:'11px'}} onClick={()=>setConfirmDel({...c,_type:'caso'})}>✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Acordos ── */}
+      {subAba==='acordos'&&(
+        <div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
+            <div style={{fontSize:'13px',color:'var(--text2)'}}>Total de acordos: <strong>{acordos.length}</strong> | Valor total: <strong>{fmtBRL(acordos.reduce((s,a)=>s+parseVal(a.valorAcordo),0))}</strong></div>
+            <button className="btn btn-primary" onClick={()=>setModalAcordo(true)}>+ Registrar acordo</button>
+          </div>
+
+          {loading&&<div style={{textAlign:'center',color:'var(--text3)',padding:'48px'}}>Carregando…</div>}
+          {!loading&&acordos.length===0&&<div className="empty-state"><div className="icon">🤝</div><div>Nenhum acordo registrado ainda.</div></div>}
+
+          <div className="table-scroll">
+            {acordos.length>0&&(
+              <div style={{minWidth:'600px'}}>
+                <div className="acordo-row inadim-header" style={{background:'var(--surface2)',borderRadius:'var(--radius-sm) var(--radius-sm) 0 0',borderBottom:'none'}}>
+                  <span>Processo</span><span>Cliente</span><span>Empreendimento</span><span>Valor do acordo</span><span></span>
+                </div>
+                {acordos.map(a=>(
+                  <div key={a.mondayId} className="acordo-row" style={{background:'var(--surface)'}}>
+                    <div style={{fontSize:'12px',fontFamily:'DM Mono,monospace',color:'var(--text2)'}}>{a.processo||'–'}</div>
+                    <div>
+                      <div style={{fontWeight:600,fontSize:'13px'}}>{a.nomeCliente}</div>
+                      {a.dataAcordo&&<div style={{fontSize:'11px',color:'var(--text3)'}}>{fmt(a.dataAcordo)}</div>}
+                      {a.obs&&<div style={{fontSize:'11px',color:'var(--text3)',fontStyle:'italic'}}>{a.obs}</div>}
+                    </div>
+                    <div style={{fontSize:'12px'}}>{a.empreendimento||'–'}</div>
+                    <div style={{fontSize:'13px',fontWeight:700,color:'var(--green)',fontFamily:'DM Mono,monospace'}}>{a.valorAcordo?fmtBRL(a.valorAcordo):'–'}</div>
+                    <div style={{display:'flex',gap:'4px'}}>
+                      <button className="btn btn-ghost" style={{padding:'4px 10px',fontSize:'11px'}} onClick={()=>setEditAcordo(a)}>Editar</button>
+                      <button className="btn btn-danger" style={{padding:'4px 8px',fontSize:'11px'}} onClick={()=>setConfirmDel({...a,_type:'acordo'})}>✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Gráficos ── */}
+      {subAba==='graficos'&&(
+        <div>
+          {/* Cards resumo */}
+          <div style={{display:'flex',gap:'12px',marginBottom:'24px',flexWrap:'wrap'}}>
+            {[
+              {label:'Ações ajuizadas',value:casos.length,color:'var(--blue)',bg:'var(--blue-light)',border:'#BFDBFE'},
+              {label:'Acordos realizados',value:acordos.length,color:'var(--green)',bg:'var(--green-light)',border:'#A7F3D0'},
+              {label:'Valor total das causas',value:fmtBRL(totalCausas),color:'var(--accent)',bg:'var(--accent-light)',border:'#BFDBFE',small:true},
+              {label:'Valor total dos acordos',value:fmtBRL(totalAcordos),color:'var(--green)',bg:'var(--green-light)',border:'#A7F3D0',small:true},
+              {label:'Taxa de recuperação',value:`${pctRecup}%`,color:'var(--amber)',bg:'var(--amber-light)',border:'#FDE68A'},
+            ].map((c,i)=>(
+              <div key={i} className="stat-card" style={{borderColor:c.border,background:c.bg}}>
+                <div style={{fontSize:c.small?'18px':'28px',fontWeight:700,color:c.color,fontFamily:'DM Mono,monospace'}}>{c.value}</div>
+                <div style={{fontSize:'11.5px',color:'var(--text2)',marginTop:'3px',fontWeight:500}}>{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Barras por empreendimento */}
+          <div style={{background:'var(--surface)',border:'1.5px solid var(--border)',borderRadius:'var(--radius)',padding:'20px',marginBottom:'16px'}}>
+            <div style={{fontSize:'13px',fontWeight:700,color:'var(--text)',marginBottom:'16px'}}>Ações por empreendimento</div>
+            {empArr.length===0?<div style={{color:'var(--text3)',fontSize:'13px'}}>Sem dados.</div>:(
+              <div style={{overflowX:'auto'}}>
+                <div className="chart-bar" style={{minWidth:`${empArr.length*80}px`}}>
+                  {empArr.map(([emp,qtd])=>(
+                    <div key={emp} className="chart-col">
+                      <div className="chart-value">{qtd}</div>
+                      <div className="chart-bar-inner" style={{height:`${(qtd/maxEmp)*140+4}px`,background:'var(--accent)'}}/>
+                      <div className="chart-label">{emp.replace('Porto ','').replace('CampoBello ','CB ')}</div>
+                      <div style={{fontSize:'10px',color:'var(--text3)'}}>{((qtd/casos.length)*100).toFixed(0)}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Comparativo causas x acordos */}
+          <div style={{background:'var(--surface)',border:'1.5px solid var(--border)',borderRadius:'var(--radius)',padding:'20px'}}>
+            <div style={{fontSize:'13px',fontWeight:700,color:'var(--text)',marginBottom:'16px'}}>Causas × Acordos (valor)</div>
+            <div style={{display:'flex',gap:'12px',alignItems:'flex-end',height:'120px',maxWidth:'240px'}}>
+              {[
+                {label:'Total causas',val:totalCausas,color:'var(--blue)'},
+                {label:'Total acordos',val:totalAcordos,color:'var(--green)'},
+              ].map(({label,val,color},i)=>{
+                const maxV=Math.max(totalCausas,totalAcordos,1);
+                return (
+                  <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
+                    <div style={{fontSize:'11px',fontWeight:700,color,fontFamily:'DM Mono,monospace'}}>{fmtBRL(val)}</div>
+                    <div style={{width:'100%',borderRadius:'6px 6px 0 0',background:color,height:`${(val/maxV)*90+4}px`,minHeight:'4px'}}/>
+                    <div style={{fontSize:'11px',color:'var(--text3)',textAlign:'center'}}>{label}</div>
+                  </div>
+                );
+              })}
+            </div>
+            {totalCausas>0&&(
+              <div style={{marginTop:'12px',fontSize:'13px',color:'var(--text2)'}}>
+                Dos <strong>{fmtBRL(totalCausas)}</strong> em causas ajuizadas, <strong>{fmtBRL(totalAcordos)}</strong> foram recuperados via acordos (<strong style={{color:'var(--green)'}}>{pctRecup}%</strong>).
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {modalCaso&&<ModalInadim onClose={()=>setModalCaso(false)} onSave={f=>handleSaveCaso(f,null)} saving={saving}/>}
+      {editCaso&&<ModalInadim initial={editCaso} onClose={()=>setEditCaso(null)} onSave={f=>handleSaveCaso(f,editCaso)} saving={saving}/>}
+      {modalAcordo&&<ModalAcordo onClose={()=>setModalAcordo(false)} onSave={f=>handleSaveAcordo(f,null)} saving={saving}/>}
+      {editAcordo&&<ModalAcordo initial={editAcordo} onClose={()=>setEditAcordo(null)} onSave={f=>handleSaveAcordo(f,editAcordo)} saving={saving}/>}
+      {confirmDel&&<ModalConfirm titulo={confirmDel.reus||confirmDel.nomeCliente} onClose={()=>setConfirmDel(null)} onConfirm={handleDelete} saving={saving}/>}
+    </div>
+  );
+}
+
+// ── Aba PDI ───────────────────────────────────────────────────────
+function AbaPDI({apiKey,boardMetaId}) {
+  const [progress,setProgress]=useState({});
+  const [progressItemId,setProgressItemId]=useState(null);
+  const [progressValId,setProgressValId]=useState(null);
+  const [open,setOpen]=useState({'prazos':true});
+  const [saving,setSaving]=useState(false);
+
+  useEffect(()=>{loadProgress();},[boardMetaId]);
+
+  const loadProgress=async()=>{
+    try{
+      const r=await fetchPDIProgress(apiKey,boardMetaId);
+      setProgress(r.progress||{});
+      setProgressItemId(r.id);
+      setProgressValId(r.valId);
+    }catch(e){console.error(e);}
+  };
+
+  const setEixoProgress=async(eixoId,val)=>{
+    const novo={...progress,[eixoId]:val};
+    setProgress(novo);
+    setSaving(true);
+    try{
+      const newId=await savePDIProgress(apiKey,boardMetaId,novo,progressItemId,progressValId);
+      if(!progressItemId) setProgressItemId(newId);
+    }catch(e){console.error(e);}
+    setSaving(false);
+  };
+
+  const toggleAcao=async(eixoId,idx)=>{
+    const key=`${eixoId}_acao_${idx}`;
+    const novo={...progress,[key]:!progress[key]};
+    setProgress(novo);
+    setSaving(true);
+    try{
+      const newId=await savePDIProgress(apiKey,boardMetaId,novo,progressItemId,progressValId);
+      if(!progressItemId) setProgressItemId(newId);
+    }catch(e){console.error(e);}
+    setSaving(false);
+  };
+
+  return (
+    <div className="card-enter">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px',flexWrap:'wrap',gap:'8px'}}>
+        <div>
+          <div style={{fontSize:'16px',fontWeight:700,color:'var(--text)'}}>Plano de Desenvolvimento Individual</div>
+          <div style={{fontSize:'12.5px',color:'var(--text3)',marginTop:'2px'}}>Assistente Jurídico — Horizonte 3 a 6 meses · Gestora: Flávia Smolka Santana</div>
+        </div>
+        {saving&&<span style={{fontSize:'11px',color:'var(--text3)'}}>Salvando…</span>}
+      </div>
+
+      {PDI_EIXOS.map(eixo=>{
+        const prog=progress[eixo.id]||0;
+        const acoesFeitasCount=eixo.acoes.filter((_,i)=>progress[`${eixo.id}_acao_${i}`]).length;
+        const isOpen=open[eixo.id];
+        return (
+          <div key={eixo.id} className="pdi-card">
+            <div className="pdi-card-header" onClick={()=>setOpen(p=>({...p,[eixo.id]:!p[eixo.id]}))}>
+              <span style={{fontSize:'20px'}}>{eixo.icon}</span>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:'14px',color:'var(--text)'}}>{eixo.titulo}</div>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'4px'}}>
+                  <div className="progress-bar" style={{flex:1,maxWidth:'200px'}}>
+                    <div className="progress-fill" style={{width:`${prog}%`,background:eixo.cor}}/>
+                  </div>
+                  <span style={{fontSize:'12px',fontWeight:700,color:eixo.cor,fontFamily:'DM Mono,monospace'}}>{prog}%</span>
+                  <span style={{fontSize:'11px',color:'var(--text3)'}}>{acoesFeitasCount}/{eixo.acoes.length} ações</span>
+                </div>
+              </div>
+              <span style={{fontSize:'16px',color:'var(--text3)',transition:'transform .2s',transform:isOpen?'rotate(180deg)':'rotate(0deg)'}}>▾</span>
+            </div>
+
+            {isOpen&&(
+              <div className="pdi-card-body">
+                <div style={{background:eixo.corBg,borderRadius:'var(--radius-sm)',padding:'12px 14px',marginBottom:'14px',fontSize:'13px',color:'var(--text2)',lineHeight:1.6}}>
+                  <strong>Objetivo:</strong> {eixo.objetivo}
+                </div>
+
+                {/* Ações práticas com checkbox */}
+                <div style={{marginBottom:'14px'}}>
+                  <div style={{fontSize:'11.5px',fontWeight:700,color:'var(--text2)',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'8px'}}>Ações práticas</div>
+                  {eixo.acoes.map((acao,i)=>{
+                    const feita=!!progress[`${eixo.id}_acao_${i}`];
+                    return (
+                      <div key={i} onClick={()=>toggleAcao(eixo.id,i)} style={{display:'flex',gap:'10px',alignItems:'flex-start',padding:'8px 10px',borderRadius:'var(--radius-sm)',cursor:'pointer',marginBottom:'4px',background:feita?eixo.corBg:'transparent',transition:'background .15s'}}>
+                        <div style={{width:'18px',height:'18px',borderRadius:'5px',border:`2px solid ${feita?eixo.cor:'var(--border2)'}`,background:feita?eixo.cor:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px',transition:'all .15s'}}>
+                          {feita&&<span style={{color:'#fff',fontSize:'10px',fontWeight:700}}>✓</span>}
+                        </div>
+                        <span style={{fontSize:'13px',color:feita?'var(--text2)':'var(--text)',textDecoration:feita?'line-through':'none',lineHeight:1.5}}>{acao}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Indicadores */}
+                <div style={{marginBottom:'14px'}}>
+                  <div style={{fontSize:'11.5px',fontWeight:700,color:'var(--text2)',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'8px'}}>Indicadores de evolução</div>
+                  {eixo.indicadores.map((ind,i)=>(
+                    <div key={i} style={{display:'flex',gap:'8px',alignItems:'flex-start',fontSize:'13px',color:'var(--text2)',marginBottom:'4px',lineHeight:1.5}}>
+                      <span style={{color:eixo.cor,fontWeight:700,fontSize:'14px',lineHeight:'1.3'}}>→</span>{ind}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Prazo + controle de progresso */}
+                <div style={{display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap',borderTop:'1px solid var(--border)',paddingTop:'12px'}}>
+                  <div style={{fontSize:'12px',color:'var(--text3)'}}>⏱ {eixo.prazo}</div>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginLeft:'auto'}}>
+                    <span style={{fontSize:'12px',color:'var(--text2)',fontWeight:500}}>Progresso:</span>
+                    <input type="range" min="0" max="100" step="5" value={prog}
+                      onChange={e=>setEixoProgress(eixo.id,Number(e.target.value))}
+                      style={{width:'120px',accentColor:eixo.cor,cursor:'pointer'}}/>
+                    <span style={{fontSize:'13px',fontWeight:700,color:eixo.cor,fontFamily:'DM Mono,monospace',minWidth:'36px'}}>{prog}%</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── App principal ─────────────────────────────────────────────────
+function App() {
+  const [apiKey,setApiKey]=useState('');
+  const [apiInput,setApiInput]=useState('');
+  const [connecting,setConnecting]=useState(false);
+  const [connError,setConnError]=useState('');
+  const [loading,setLoading]=useState(false);
+
+  const [boards,setBoards]=useState({sol:null,seman:null,meta:null,inadim:null,acordos:null});
+  const [cats,setCats]=useState(CATS_DEFAULT);
+  const [catItemId,setCatItemId]=useState(null);
+  const [catValId,setCatValId]=useState(null);
+  const [solColIds,setSolColIds]=useState({});
+  const [aba,setAba]=useState('solicitacoes');
+
+  // Stats para cabeçalho (carregados na init)
+  const [statsAtivPend,setStatsAtivPend]=useState(0);
+  const [statsAtivVenc,setStatsAtivVenc]=useState(0);
+
+  useEffect(()=>{
+    const k=localStorage.getItem('pg_monday_key');
+    if(k){setApiKey(k);initAll(k);}
+  },[]);
+
+  const initAll=async(key)=>{
+    setLoading(true);setConnError('');
+    try{
+      const [bSol,bSeman,bMeta,bInadim,bAcordos]=await Promise.all([
+        initBoardSol(key),initBoardSeman(key),initBoardMeta(key),
+        initBoardInadim(key),initBoardAcordos(key),
+      ]);
+      setBoards({sol:bSol,seman:bSeman,meta:bMeta,inadim:bInadim,acordos:bAcordos});
+
+      const [catData,semData]=await Promise.all([fetchCats(key,bMeta),fetchSemans(key,bSeman)]);
+      setCats(catData.cats);setCatItemId(catData.id);setCatValId(catData.valId);
+      setStatsAtivPend(semData.filter(t=>!t.feito&&!isVencida(t)).length);
+      setStatsAtivVenc(semData.filter(isVencida).length);
+    }catch(e){setConnError('Erro ao conectar: '+e.message);}
+    setLoading(false);
+  };
+
+  const connect=async()=>{
+    if(!apiInput.trim()) return;
+    setConnecting(true);setConnError('');
+    const key=apiInput.trim();
+    localStorage.setItem('pg_monday_key',key);
     setApiKey(key);
     await initAll(key);
     setConnecting(false);
   };
 
-  const disconnect = () => {
-    ["pg_monday_key","pg_board_sol","pg_board_seman","pg_board_meta"].forEach(k => localStorage.removeItem(k));
-    setApiKey(""); setBoardSolId(null); setSolicitacoes([]); setSemanais([]);
+  const disconnect=()=>{
+    localStorage.removeItem('pg_monday_key');
+    setApiKey('');setBoards({sol:null,seman:null,meta:null,inadim:null,acordos:null});
   };
 
-  // ── Solicitações ──
-  const openNewSol  = () => { setEditSol(null); setFormSol({...emptyFormSol, categoria: cats[0]||"Contratos"}); setFormErr(""); setModalSol(true); };
-  const openEditSol = (s) => { setEditSol(s); setFormSol({titulo:s.titulo,categoria:s.categoria,status:s.status,prazoInterno:s.prazoInterno,prazoExterno:s.prazoExterno,obs:s.obs||""}); setFormErr(""); setModalSol(true); };
-
-  const submitSol = async () => {
-    if (!formSol.titulo.trim()) { setFormErr("O título é obrigatório."); return; }
-    if (!formSol.prazoInterno)  { setFormErr("Informe o prazo interno."); return; }
-    if (!formSol.prazoExterno)  { setFormErr("Informe o prazo externo."); return; }
-    setFormErr(""); setSaving(true);
-    try {
-      if (editSol) {
-        await updateSol(apiKey, boardSolId, editSol.mondayId, formSol, colIdsSol);
-        setSolicitacoes(prev => prev.map(s => s.mondayId===editSol.mondayId ? {...s,...formSol} : s));
-      } else {
-        const newId = await createSol(apiKey, boardSolId, formSol, colIdsSol);
-        setSolicitacoes(prev => [...prev, {...formSol, id:newId, mondayId:newId}]);
-      }
-      setModalSol(false);
-    } catch(e) { setFormErr("Erro ao salvar: " + e.message); }
-    setSaving(false);
+  const handleSaveCats=async(novaLista)=>{
+    try{
+      const newId=await saveCatsMeta(apiKey,boards.meta,novaLista,catItemId,catValId);
+      setCats(novaLista);if(!catItemId)setCatItemId(newId);
+    }catch(e){alert('Erro: '+e.message);}
   };
 
-  const deleteSol = async (s) => {
-    setSaving(true);
-    try { await deleteMondayItem(apiKey, s.mondayId); setSolicitacoes(prev => prev.filter(x => x.mondayId!==s.mondayId)); }
-    catch(e) { alert("Erro: " + e.message); }
-    setSaving(false); setConfirmDel(null);
-  };
-
-  const changeStatusSol = async (s, status) => {
-    setSolicitacoes(prev => prev.map(x => x.mondayId===s.mondayId ? {...x,status} : x));
-    try { await updateSol(apiKey, boardSolId, s.mondayId, {...s,status}, colIdsSol); } catch {}
-  };
-
-  // ── Atividades Semanais ──
-  const openNewSeman  = () => { setEditSeman(null); setFormSeman({titulo:"",dia:"Segunda"}); setModalSeman(true); };
-  const openEditSeman = (t) => { setEditSeman(t); setFormSeman({titulo:t.titulo,dia:t.dia}); setModalSeman(true); };
-
-  const submitSeman = async () => {
-    if (!formSeman.titulo.trim()) return;
-    setSaving(true);
-    try {
-      if (editSeman) {
-        const updated = {...editSeman, titulo:formSeman.titulo, dia:formSeman.dia};
-        await updateSeman(apiKey, boardSemanId, editSeman.mondayId, updated, colIdsSeman);
-        setSemanais(prev => prev.map(t => t.mondayId===editSeman.mondayId ? updated : t));
-      } else {
-        const novo = {...formSeman, comentarios:[], feito:false, prazoData:""};
-        const newId = await createSeman(apiKey, boardSemanId, novo, colIdsSeman);
-        setSemanais(prev => [...prev, {...novo, id:newId, mondayId:newId}]);
-      }
-    } catch(e) { alert("Erro: " + e.message); }
-    setSaving(false); setModalSeman(false);
-  };
-
-  const toggleSeman = async (t) => {
-    const updated = {...t, feito: !t.feito};
-    setSemanais(prev => prev.map(x => x.mondayId===t.mondayId ? updated : x));
-    try { await updateSeman(apiKey, boardSemanId, t.mondayId, updated, colIdsSeman); } catch {}
-  };
-
-  const deleteSeman = async (mondayId) => {
-    setSaving(true);
-    try { await deleteMondayItem(apiKey, mondayId); setSemanais(prev => prev.filter(t => t.mondayId!==mondayId)); }
-    catch(e) { alert("Erro: " + e.message); }
-    setSaving(false); setConfirmDel(null);
-  };
-
-  const resetSemana = async () => {
-    const updated = semanais.map(t => ({...t, feito:false}));
-    setSemanais(updated);
-    try {
-      await Promise.all(updated.map(t => updateSeman(apiKey, boardSemanId, t.mondayId, t, colIdsSeman)));
-    } catch {}
-  };
-
-  const saveAtividade = async (atividadeAtualizada) => {
-    setSemanais(prev => prev.map(t => t.mondayId===atividadeAtualizada.mondayId ? atividadeAtualizada : t));
-    await updateSeman(apiKey, boardSemanId, atividadeAtualizada.mondayId, atividadeAtualizada, colIdsSeman);
-  };
-
-  // ── Categorias ──
-  const handleSaveCats = async (novaLista) => {
-    setSaving(true);
-    try {
-      const newItemId = await saveCats(apiKey, boardMetaId, novaLista, catItemId, catValId);
-      setCats(novaLista);
-      if (!catItemId) setCatItemId(newItemId);
-    } catch(e) { alert("Erro ao salvar categorias: " + e.message); }
-    setSaving(false);
-    setModalCats(false);
-  };
-
-  // ── Derivados ──
-  const criticos   = solicitacoes.filter(isCritico);
-  const vencidas   = semanais.filter(isVencida);
-  const pendentes  = semanais.filter(t => !t.feito && !isVencida(t));
-
-  const solFiltradas = solicitacoes.filter(s =>
-    (filtroStatus==="Todos"  || s.status===filtroStatus) &&
-    (filtroCat==="Todas"     || s.categoria===filtroCat) &&
-    (!busca.trim() || s.titulo.toLowerCase().includes(busca.toLowerCase()) || (s.obs||"").toLowerCase().includes(busca.toLowerCase()))
-  ).sort((a,b) => new Date(a.prazoInterno) - new Date(b.prazoInterno));
-
-  // ── Login ──
-  if (!apiKey) return (
+  // ── Tela de login ──
+  if(!apiKey) return (
     <div className="login-wrap">
       <div className="login-box">
-        <img src="logo_Rottas_horizontal_sem_construtora.png" alt="Rottas" style={{height:"40px",marginBottom:"20px",objectFit:"contain"}} />
-        <h1 style={{fontSize:"19px",fontWeight:700,marginBottom:"6px",color:"var(--text)"}}>Painel Gabriel</h1>
-        <p style={{fontSize:"13px",color:"var(--text3)",marginBottom:"24px",lineHeight:1.6}}>Cole sua chave de API do Monday para acessar o painel.</p>
+        <img src="logo_Rottas_horizontal_sem_construtora.png" alt="Rottas" style={{height:'38px',marginBottom:'20px',objectFit:'contain'}}/>
+        <h1 style={{fontSize:'19px',fontWeight:700,marginBottom:'6px'}}>Painel Gabriel</h1>
+        <p style={{fontSize:'13px',color:'var(--text3)',marginBottom:'24px',lineHeight:1.6}}>Cole sua chave de API do Monday para acessar o painel.</p>
         <Field label="Chave de API do Monday">
-          <input type="password" className="inp" value={apiInput} onChange={e=>setApiInput(e.target.value)} placeholder="Cole sua chave aqui" onKeyDown={e=>e.key==="Enter"&&connect()} />
+          <input type="password" className="inp" value={apiInput} onChange={e=>setApiInput(e.target.value)} placeholder="Cole sua chave aqui" onKeyDown={e=>e.key==='Enter'&&connect()}/>
         </Field>
-        {connError && <div style={{background:"var(--red-light)",color:"var(--red)",fontSize:"12.5px",padding:"8px 12px",borderRadius:"8px",marginBottom:"12px"}}>{connError}</div>}
-        <button className="btn btn-primary" style={{width:"100%"}} onClick={connect} disabled={connecting}>
-          {connecting ? "Conectando…" : "Entrar"}
-        </button>
-        <p style={{fontSize:"11px",color:"var(--text3)",marginTop:"12px",textAlign:"center"}}>A chave fica salva no seu navegador.</p>
+        <ErrBox msg={connError}/>
+        <button className="btn btn-primary" style={{width:'100%'}} onClick={connect} disabled={connecting}>{connecting?'Conectando…':'Entrar'}</button>
+        <p style={{fontSize:'11px',color:'var(--text3)',marginTop:'12px',textAlign:'center'}}>A chave fica salva no seu navegador.</p>
       </div>
     </div>
   );
 
   return (
-    <div style={{maxWidth:"960px",margin:"0 auto",padding:"32px 20px",minHeight:"100vh"}}>
-
+    <div style={{maxWidth:'1020px',margin:'0 auto',padding:'28px 20px',minHeight:'100vh'}}>
       {/* Cabeçalho */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"24px",flexWrap:"wrap",gap:"10px"}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'20px',flexWrap:'wrap',gap:'10px'}}>
         <div>
-          <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"4px"}}>
-            <img src="logo_Rottas_horizontal_sem_construtora.png" alt="Rottas" style={{height:"32px",objectFit:"contain"}} />
-            <h1 style={{fontSize:"20px",fontWeight:700,color:"var(--text)"}}>Painel Gabriel</h1>
+          <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'4px'}}>
+            <img src="logo_Rottas_horizontal_sem_construtora.png" alt="Rottas" style={{height:'30px',objectFit:'contain'}}/>
+            <h1 style={{fontSize:'20px',fontWeight:700,color:'var(--text)'}}>Painel Gabriel</h1>
           </div>
-          <p style={{fontSize:"12.5px",color:"var(--text3)"}}>
-            {today.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
-          </p>
+          <p style={{fontSize:'12.5px',color:'var(--text3)'}}>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
         </div>
-        <div style={{display:"flex",gap:"6px",alignItems:"center",flexWrap:"wrap"}}>
-          <span style={{fontSize:"11px",background:"var(--green-light)",color:"var(--green)",padding:"4px 10px",borderRadius:"20px",fontWeight:600,border:"1px solid #A7F3D0"}}>● Monday conectado</span>
-          <button className="btn btn-ghost" style={{padding:"7px 12px",fontSize:"12px"}} onClick={reloadAll} disabled={loading}>{loading?"…":"↻ Atualizar"}</button>
-          <button className="btn btn-danger" style={{padding:"7px 12px",fontSize:"12px"}} onClick={disconnect}>Desconectar</button>
+        <div style={{display:'flex',gap:'6px',alignItems:'center',flexWrap:'wrap'}}>
+          <span style={{fontSize:'11px',background:'var(--green-light)',color:'var(--green)',padding:'4px 10px',borderRadius:'20px',fontWeight:600,border:'1px solid #A7F3D0'}}>● Monday conectado</span>
+          <button className="btn btn-ghost" style={{padding:'7px 12px',fontSize:'12px'}} onClick={()=>initAll(apiKey)} disabled={loading}>{loading?'…':'↻ Atualizar'}</button>
+          <button className="btn btn-danger" style={{padding:'7px 12px',fontSize:'12px'}} onClick={disconnect}>Desconectar</button>
         </div>
       </div>
 
-      {/* Estatísticas */}
-      <div style={{display:"flex",gap:"10px",marginBottom:"24px",flexWrap:"wrap"}}>
+      {/* Cards de estatísticas */}
+      <div style={{display:'flex',gap:'10px',marginBottom:'24px',flexWrap:'wrap'}}>
         {[
-          { label:"Prazos internos críticos", value:criticos.length,  color:criticos.length>0?"var(--red)":"var(--green)",  bg:criticos.length>0?"var(--red-light)":"var(--green-light)",  border:criticos.length>0?"#F9CACA":"#A7F3D0" },
-          { label:"Solicitações em aberto",   value:solicitacoes.filter(s=>s.status!=="Concluído").length, color:"var(--blue)",  bg:"var(--blue-light)",  border:"#BFDBFE" },
-          { label:"Atividades pendentes",      value:pendentes.length, color:"var(--amber)", bg:"var(--amber-light)", border:"#FDE68A" },
-          { label:"Atividades vencidas",       value:vencidas.length,  color:vencidas.length>0?"var(--red)":"var(--text3)", bg:vencidas.length>0?"var(--red-light)":"var(--surface2)", border:vencidas.length>0?"#F9CACA":"var(--border)" },
-        ].map((c,i) => (
+          {label:'Atividades pendentes',value:statsAtivPend,color:'var(--amber)',bg:'var(--amber-light)',border:'#FDE68A'},
+          {label:'Atividades vencidas',value:statsAtivVenc,color:statsAtivVenc>0?'var(--red)':'var(--text3)',bg:statsAtivVenc>0?'var(--red-light)':'var(--surface2)',border:statsAtivVenc>0?'#F9CACA':'var(--border)'},
+        ].map((c,i)=>(
           <div key={i} className="stat-card" style={{borderColor:c.border,background:c.bg}}>
-            <div style={{fontSize:"30px",fontWeight:700,color:c.color,fontFamily:"'DM Mono',monospace"}}>{c.value}</div>
-            <div style={{fontSize:"11.5px",color:"var(--text2)",marginTop:"3px",fontWeight:500}}>{c.label}</div>
+            <div style={{fontSize:'28px',fontWeight:700,color:c.color,fontFamily:'DM Mono,monospace'}}>{c.value}</div>
+            <div style={{fontSize:'11.5px',color:'var(--text2)',marginTop:'3px',fontWeight:500}}>{c.label}</div>
           </div>
         ))}
       </div>
+
+      {loading&&!boards.sol&&<div style={{textAlign:'center',color:'var(--text3)',padding:'64px'}}>Inicializando painel…</div>}
 
       {/* Abas */}
-      <div style={{display:"flex",gap:"2px",borderBottom:"2px solid var(--border)",marginBottom:"24px"}}>
-        {[["solicitacoes","Solicitações"],["semanais","Atividades Semanais"]].map(([k,l]) => (
-          <button key={k} className={`tab-btn ${aba===k?"active":""}`} onClick={() => setAba(k)}>{l}</button>
-        ))}
-      </div>
-
-      {loading && <div style={{textAlign:"center",color:"var(--text3)",padding:"48px 0"}}>Carregando…</div>}
-
-      {/* ── ABA SOLICITAÇÕES ── */}
-      {!loading && aba==="solicitacoes" && (
-        <div className="card-enter">
-          {criticos.length > 0 && (
-            <div className="alerta alerta-critico">
-              <span>⚠️</span>
-              <strong>{criticos.length} {criticos.length===1?"prazo crítico":"prazos críticos"}</strong>
-              <span>– vence hoje ou amanhã</span>
-            </div>
-          )}
-
-          <div style={{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap",alignItems:"center"}}>
-            <input className="inp" style={{flex:"1 1 200px"}} placeholder="Buscar…" value={busca} onChange={e=>setBusca(e.target.value)} />
-            <select className="inp" value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)} style={{width:"auto",flex:"1 1 150px"}}>
-              <option value="Todos">Todos os status</option>
-              {STATUS_SOL.map(s=><option key={s}>{s}</option>)}
-            </select>
-            <select className="inp" value={filtroCat} onChange={e=>setFiltroCat(e.target.value)} style={{width:"auto",flex:"1 1 150px"}}>
-              <option value="Todas">Todas as categorias</option>
-              {cats.map(c=><option key={c}>{c}</option>)}
-            </select>
-            <button className="btn btn-ghost" style={{whiteSpace:"nowrap"}} onClick={()=>setModalCats(true)}>⚙ Categorias</button>
-            <button className="btn btn-primary" onClick={openNewSol}>+ Nova solicitação</button>
+      {boards.sol&&(
+        <>
+          <div style={{display:'flex',gap:'2px',borderBottom:'2px solid var(--border)',marginBottom:'24px',overflowX:'auto'}}>
+            {[
+              ['solicitacoes','Solicitações'],
+              ['semanais','Atividades Semanais'],
+              ['inadimplentes','Projeto Inadimplentes'],
+              ['pdi','PDI'],
+            ].map(([k,l])=>(
+              <button key={k} className={`tab-btn ${aba===k?'active':''}`} onClick={()=>setAba(k)}>{l}</button>
+            ))}
+            {aba==='solicitacoes'&&(
+              <button className="btn btn-ghost" style={{marginLeft:'auto',padding:'6px 12px',fontSize:'12px',marginBottom:'2px'}} onClick={()=>{}}>
+                <span onClick={e=>{e.stopPropagation();const el=document.createElement('div');el.innerHTML='';/* trigger cats modal */window.__openCats&&window.__openCats();}}>⚙ Categorias</span>
+              </button>
+            )}
           </div>
 
-          {solFiltradas.length===0 && (
-            <div className="empty-state">
-              <div className="icon">📋</div>
-              <div>Nenhuma solicitação encontrada.</div>
-            </div>
-          )}
-
-          <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
-            {solFiltradas.map(s => {
-              const crit = isCritico(s);
-              const cc = catColor(cats, s.categoria);
-              const sc = statusColor[s.status] || statusColor["Em andamento"];
-              return (
-                <div key={s.mondayId} className={`sol-card card-enter ${crit?"critico":""} ${s.status==="Concluído"?"concluido":""}`}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"12px",flexWrap:"wrap"}}>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"7px",flexWrap:"wrap"}}>
-                        <span style={{fontWeight:600,fontSize:"14px",color:"var(--text)"}}>{s.titulo}</span>
-                      </div>
-                      <div style={{display:"flex",gap:"6px",flexWrap:"wrap",alignItems:"center"}}>
-                        <span className="badge" style={{background:cc.bg,color:cc.color}}>{s.categoria}</span>
-                        <select className="status-select" value={s.status} onChange={e=>changeStatusSol(s,e.target.value)} style={{background:sc.bg,color:sc.color}}>
-                          {STATUS_SOL.map(st=><option key={st}>{st}</option>)}
-                        </select>
-                      </div>
-                      {s.obs && <div style={{fontSize:"12px",color:"var(--text3)",marginTop:"7px",lineHeight:1.5}}>{s.obs}</div>}
-                    </div>
-                    <div style={{display:"flex",gap:"14px",alignItems:"center",flexShrink:0}}>
-                      <PrazoTag label="Interno" dateStr={s.prazoInterno} />
-                      <PrazoTag label="Externo" dateStr={s.prazoExterno} />
-                      <div style={{display:"flex",flexDirection:"column",gap:"4px"}}>
-                        <button className="btn btn-ghost" style={{padding:"5px 12px",fontSize:"12px"}} onClick={()=>openEditSol(s)}>Editar</button>
-                        <button className="btn btn-danger" style={{padding:"5px 12px",fontSize:"12px"}} onClick={()=>setConfirmDel({type:"sol",item:s,titulo:s.titulo})}>Excluir</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── ABA SEMANAIS ── */}
-      {!loading && aba==="semanais" && (
-        <div className="card-enter">
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"18px",flexWrap:"wrap",gap:"8px"}}>
-            <span style={{fontSize:"12.5px",color:"var(--text3)"}}>Clique na atividade para abrir detalhes e adicionar comentários</span>
-            <div style={{display:"flex",gap:"8px"}}>
-              <button className="btn btn-ghost" onClick={resetSemana}>↺ Reiniciar semana</button>
-              <button className="btn btn-primary" onClick={openNewSeman}>+ Nova atividade</button>
-            </div>
-          </div>
-
-          {vencidas.length > 0 && (
-            <div className="alerta alerta-critico" style={{marginBottom:"16px"}}>
-              <span>⏰</span>
-              <strong>{vencidas.length} {vencidas.length===1?"atividade vencida":"atividades vencidas"}</strong>
-              <span>– reagende ou marque como concluída</span>
-            </div>
-          )}
-
-          {semanais.length===0 && (
-            <div className="empty-state">
-              <div className="icon">📅</div>
-              <div>Nenhuma atividade cadastrada.</div>
-            </div>
-          )}
-
-          {DIAS.map(dia => {
-            const tarefas = semanais.filter(t => t.dia===dia);
-            if (!tarefas.length) return null;
-            return (
-              <div key={dia} style={{marginBottom:"22px"}}>
-                <div className="dia-header">{dia}</div>
-                <div style={{display:"flex",flexDirection:"column",gap:"6px"}}>
-                  {tarefas.map(t => {
-                    const venc = isVencida(t);
-                    return (
-                      <div key={t.mondayId} className={`seman-card ${venc&&!t.feito?"vencida":""}`} onClick={()=>setModalAtiv(t)}>
-                        <Checkbox checked={t.feito} onClick={()=>toggleSeman(t)} />
-                        <div style={{flex:1,minWidth:0}}>
-                          <span style={{fontSize:"13.5px",textDecoration:t.feito?"line-through":"none",color:t.feito?"var(--text3)":"var(--text)",userSelect:"none"}}>{t.titulo}</span>
-                          {t.comentarios?.length > 0 && (
-                            <span style={{fontSize:"11px",color:"var(--text3)",marginLeft:"8px"}}>💬 {t.comentarios.length}</span>
-                          )}
-                          {t.prazoData && (
-                            <span style={{fontSize:"11px",color:"var(--text3)",marginLeft:"8px",fontFamily:"'DM Mono',monospace"}}>📅 {fmt(t.prazoData)}</span>
-                          )}
-                        </div>
-                        {venc && !t.feito && <span className="badge" style={{background:"var(--red-light)",color:"var(--red)",fontSize:"10px"}}>Vencida</span>}
-                        <button onClick={e=>{e.stopPropagation();openEditSeman(t);}} style={{background:"none",border:"none",color:"var(--text3)",fontSize:"12px",cursor:"pointer",padding:"2px 8px"}}>Editar</button>
-                        <button onClick={e=>{e.stopPropagation();setConfirmDel({type:"seman",id:t.mondayId,titulo:t.titulo});}} style={{background:"none",border:"none",color:"var(--red)",fontSize:"14px",cursor:"pointer",padding:"2px 8px"}}>✕</button>
-                      </div>
-                    );
-                  })}
-                </div>
+          {aba==='solicitacoes'&&(
+            <div>
+              <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+                <button className="btn btn-ghost" style={{padding:'6px 12px',fontSize:'12px'}} onClick={()=>window.__openCats&&window.__openCats()}>⚙ Gerenciar categorias</button>
               </div>
-            );
-          })}
-        </div>
+              <CatsProvider cats={cats} onSave={handleSaveCats}>
+                <AbaSolicitacoes apiKey={apiKey} boardId={boards.sol} colIds={solColIds} setColIds={setSolColIds} cats={cats}/>
+              </CatsProvider>
+            </div>
+          )}
+          {aba==='semanais'&&<AbaSemanais apiKey={apiKey} boardId={boards.seman}/>}
+          {aba==='inadimplentes'&&<AbaInadimplentes apiKey={apiKey} boardInadimId={boards.inadim} boardAcordosId={boards.acordos}/>}
+          {aba==='pdi'&&<AbaPDI apiKey={apiKey} boardMetaId={boards.meta}/>}
+        </>
       )}
-
-      {/* ── MODAIS ── */}
-      {modalAtiv && (
-        <ModalAtividade
-          atividade={modalAtiv}
-          onClose={()=>setModalAtiv(null)}
-          onSave={saveAtividade}
-          saving={saving}
-        />
-      )}
-
-      {modalCats && (
-        <ModalCategorias
-          cats={cats}
-          onClose={()=>setModalCats(false)}
-          onSave={handleSaveCats}
-          saving={saving}
-        />
-      )}
-
-      {modalSol && (
-        <Modal title={editSol?"Editar solicitação":"Nova solicitação"} onClose={()=>setModalSol(false)}>
-          <Field label="Título *">
-            <input className="inp" value={formSol.titulo} onChange={e=>setFormSol({...formSol,titulo:e.target.value})} placeholder="Descreva a solicitação" />
-          </Field>
-          <div style={{display:"flex",gap:"12px"}}>
-            <Field label="Categoria">
-              <select className="inp" value={formSol.categoria} onChange={e=>setFormSol({...formSol,categoria:e.target.value})}>
-                {cats.map(c=><option key={c}>{c}</option>)}
-              </select>
-            </Field>
-            <Field label="Status">
-              <select className="inp" value={formSol.status} onChange={e=>setFormSol({...formSol,status:e.target.value})}>
-                {STATUS_SOL.map(s=><option key={s}>{s}</option>)}
-              </select>
-            </Field>
-          </div>
-          <div style={{display:"flex",gap:"12px"}}>
-            <Field label="Prazo interno *">
-              <input type="date" className="inp" value={formSol.prazoInterno} onChange={e=>setFormSol({...formSol,prazoInterno:e.target.value})} />
-            </Field>
-            <Field label="Prazo externo *">
-              <input type="date" className="inp" value={formSol.prazoExterno} onChange={e=>setFormSol({...formSol,prazoExterno:e.target.value})} />
-            </Field>
-          </div>
-          <Field label="Observações">
-            <textarea className="inp" style={{resize:"vertical",minHeight:"72px"}} value={formSol.obs} onChange={e=>setFormSol({...formSol,obs:e.target.value})} placeholder="Informações adicionais (opcional)" />
-          </Field>
-          {formErr && <div style={{background:"var(--red-light)",color:"var(--red)",fontSize:"12.5px",padding:"8px 12px",borderRadius:"8px",marginBottom:"12px"}}>{formErr}</div>}
-          <div style={{display:"flex",gap:"8px",justifyContent:"flex-end",marginTop:"4px"}}>
-            <button className="btn btn-ghost" onClick={()=>setModalSol(false)}>Cancelar</button>
-            <button className="btn btn-primary" onClick={submitSol} disabled={saving}>{saving?"Salvando…":"Salvar"}</button>
-          </div>
-        </Modal>
-      )}
-
-      {modalSeman && (
-        <Modal title={editSeman?"Editar atividade":"Nova atividade semanal"} onClose={()=>setModalSeman(false)}>
-          <Field label="Título *">
-            <input className="inp" value={formSeman.titulo} onChange={e=>setFormSeman({...formSeman,titulo:e.target.value})} placeholder="Nome da atividade" />
-          </Field>
-          <Field label="Dia da semana">
-            <select className="inp" value={formSeman.dia} onChange={e=>setFormSeman({...formSeman,dia:e.target.value})}>
-              {DIAS.map(d=><option key={d}>{d}</option>)}
-            </select>
-          </Field>
-          <div style={{display:"flex",gap:"8px",justifyContent:"flex-end",marginTop:"4px"}}>
-            <button className="btn btn-ghost" onClick={()=>setModalSeman(false)}>Cancelar</button>
-            <button className="btn btn-primary" onClick={submitSeman} disabled={saving}>{saving?"Salvando…":"Salvar"}</button>
-          </div>
-        </Modal>
-      )}
-
-      {confirmDel && (
-        <Modal title="Confirmar exclusão" onClose={()=>setConfirmDel(null)}>
-          <p style={{fontSize:"13.5px",color:"var(--text2)",marginBottom:"20px",lineHeight:1.6}}>
-            Tem certeza que deseja excluir <strong>"{confirmDel.titulo}"</strong>? Essa ação não pode ser desfeita.
-          </p>
-          <div style={{display:"flex",gap:"8px",justifyContent:"flex-end"}}>
-            <button className="btn btn-ghost" onClick={()=>setConfirmDel(null)}>Cancelar</button>
-            <button className="btn" style={{background:"var(--red)",color:"#fff"}} onClick={()=>confirmDel.type==="sol"?deleteSol(confirmDel.item):deleteSeman(confirmDel.id)}>Excluir</button>
-          </div>
-        </Modal>
-      )}
-
     </div>
   );
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+// Provider de categorias (para botão externo abrir modal)
+function CatsProvider({cats,onSave,children}) {
+  const [modal,setModal]=useState(false);
+  const [saving,setSaving]=useState(false);
+  useEffect(()=>{ window.__openCats=()=>setModal(true); return()=>{delete window.__openCats;}; },[]);
+  const handleSave=async(lista)=>{setSaving(true);try{await onSave(lista);}catch{}setSaving(false);setModal(false);};
+  return <>
+    {children}
+    {modal&&<ModalCats cats={cats} onClose={()=>setModal(false)} onSave={handleSave} saving={saving}/>}
+  </>;
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));
 </script>
 </body>
 </html>
